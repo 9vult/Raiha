@@ -98,6 +98,13 @@ export default (client: Client): void => {
         await message.react('❌');
         return;
       }
+      for (let alt of altTexts) {
+        if (alt.length > 1000) {
+          const embed = new EmbedBuilder().setTitle(`Error`).setDescription(`Discord limitations limit alt text to 1000 characters. Your specified alt text is ${alt.length} characters. Please try again.`);
+          await message.reply({ embeds: [embed] });
+          return;
+        }
+      }
       // We have the correct number of alts
       let fixedFiles = applyAltText(op, altTexts);
       let mentions = getMentions(op);
