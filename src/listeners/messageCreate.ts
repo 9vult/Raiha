@@ -1,8 +1,9 @@
 import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
+import { Database } from 'firebase-admin/database';
 
 const VERSION = "1.1.0";
 
-export default (client: Client): void => {
+export default (client: Client, db: Database): void => {
   client.on('messageCreate', async (message) => {
 
     // Prereqs
@@ -60,22 +61,31 @@ export default (client: Client): void => {
         let fixedFiles = applyAltText(message, altTexts);
         let mentions = getMentions(message);
         let allowedMentions = generateAllowedMentions(mentions);
+        let sentMsg;
         if (message.reference) {
           // This message is a reply (1a)
           let parent = await message.channel.messages.fetch(message.reference.messageId!);
-          await parent.reply({
+          sentMsg = await parent.reply({
             files: fixedFiles,
             content: `_From <@${message.author.id}>${altStartIndex[0] > 0 ? ':_\n\n' + message.content.substring(0, altStartIndex[0]) : '._'}`,
             allowedMentions: allowedMentions
           });
         } else {
           // This message is not a reply (1b)
-          await message.channel.send({
+          sentMsg = await message.channel.send({
             files: fixedFiles,
             content: `_From <@${message.author.id}>${altStartIndex[0] > 0 ? ':_\n\n' + message.content.substring(0, altStartIndex[0]) : '._'}`,
             allowedMentions: allowedMentions
           });
         }
+        let msgData = {
+          OP: message.author.id,
+          Reference: sentMsg.url,
+          Request: message.content.substring(altStartIndex[0])
+        };
+        const ref = db.ref(`/Log/Author/${message.author.id}/`).child(sentMsg.id);
+        ref.set(msgData);
+
         await message.delete();
         return;
       }
@@ -109,23 +119,33 @@ export default (client: Client): void => {
       let fixedFiles = applyAltText(op, altTexts);
       let mentions = getMentions(op);
       let allowedMentions = generateAllowedMentions(mentions);
+      let sentMsg;
 
       if (op.reference) {
         // OP is a reply (2a)
         let parent = await op.channel.messages.fetch(op.reference.messageId!);
-        await parent.reply({
+        sentMsg = await parent.reply({
           files: fixedFiles,
           content: `_From <@${op.author.id}> with alt text by <@${message.author.id}>${op.content != '' ? ':_\n\n' + op.content : '._'}`,
           allowedMentions: allowedMentions
         });
       } else {
         // This message is not a reply (1b)
-        await message.channel.send({
+        sentMsg = await message.channel.send({
           files: fixedFiles,
           content: `_From <@${op.author.id}> with alt text by <@${message.author.id}>${op.content != '' ? ':_\n\n' + op.content : '._'}`,
           allowedMentions: allowedMentions
         });
       }
+
+      let msgData = {
+        OP: op.author.id,
+        Reference: sentMsg.url,
+        Request: message.content.substring(altStartIndex[0])
+      };
+      const ref = db.ref(`/Log/Author/${message.author.id}/`).child(sentMsg.id);
+      ref.set(msgData);
+
       await op.delete();
       await message.delete();
       return;

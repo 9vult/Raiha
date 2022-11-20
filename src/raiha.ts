@@ -8,6 +8,15 @@ import messageCreate from "./listeners/messageCreate";
 import ready from "./listeners/ready";
 
 require('dotenv').config();
+var admin = require('firebase-admin');
+var firebase = require('./firebase.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(firebase),
+  databaseURL: process.env.DATABASE_URL
+});
+
+var db = admin.database();
 
 const client = new Client({
   intents: [
@@ -19,6 +28,6 @@ const client = new Client({
 
 // Set up listeners
 ready(client);
-messageCreate(client);
+messageCreate(client, db);
 
 client.login(process.env.TOKEN);
