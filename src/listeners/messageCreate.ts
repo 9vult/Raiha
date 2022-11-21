@@ -34,6 +34,13 @@ export default (client: Client, admin: any, db: Database): void => {
       return;
     }
 
+    if (msglc === 'r?top') {
+      db.ref('/Leaderboard/').once("value", function(data) {
+        postLeaderboard(message, data.val());
+      });
+      return;
+    }
+
 
     // Check if the message has attachments
     let hasGoodAttachments = false;
@@ -271,4 +278,23 @@ const generateAllowedMentions = (mentions: Array<Array<string>>): MessageMention
     users: mentions[0],
     roles: mentions[1]
   };
+}
+
+const postLeaderboard = async (message: Message<boolean>, results: any) => {
+  let nativeS: any[] = [];
+  let raihaS: any[] = [];
+
+  for (var k in results['Native']) {
+    nativeS.push([k, results['Native'][k]]);
+  }
+  nativeS.sort((a, b) => { return b[1] - a[1]; });
+  for (var k in results['Raiha']) {
+    raihaS.push([k, results['Raiha'][k]]);
+  }
+  raihaS.sort((a, b) => { return b[1] - a[1]; });
+  const embed = new EmbedBuilder()
+    .setTitle(`Alt Text Leaderboards`)
+    .setDescription(`__**Native**__\n${nativeS.length > 1 ? '1. <@' + nativeS[1][0] + '> — ' + nativeS[1][1] + '\n' : 'Leaderboard Error'}${nativeS.length > 2 ? '2. <@' + nativeS[2][0] + '> — ' + nativeS[2][1] + '\n' : ''}${nativeS.length > 3 ? '3. <@' + nativeS[3][0] + '> — ' + nativeS[3][1] + '\n' : ''}${nativeS.length > 4 ? '4. <@' + nativeS[4][0] + '> — ' + nativeS[4][1] + '\n' : ''}${nativeS.length > 5 ? '5. <@' + nativeS[5][0] + '> — ' + nativeS[5][1] + '\n' : ''}\n__**Raiha**__\n${raihaS.length > 0 ? '1. <@' + raihaS[0][0] + '> — ' + raihaS[0][1] + '\n' : 'Leaderboard Error'}${raihaS.length > 1 ? '2. <@' + raihaS[1][0] + '> — ' + raihaS[1][1] + '\n' : ''}${raihaS.length > 2 ? '3. <@' + raihaS[2][0] + '> — ' + raihaS[2][1] + '\n' : ''}${raihaS.length > 3 ? '4. <@' + raihaS[3][0] + '> — ' + raihaS[3][1] + '\n' : ''}${raihaS.length > 4 ? '5. <@' + raihaS[4][0] + '> — ' + raihaS[4][1] + '\n' : ''}`)
+    .setColor(0xd797ff);
+  await message.reply({ embeds: [embed] });
 }
