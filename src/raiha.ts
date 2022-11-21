@@ -28,6 +28,6 @@ const client = new Client({
 
 // Set up listeners
 ready(client);
-messageCreate(client, db);
+messageCreate(client, admin, db);
 
 client.login(process.env.TOKEN);

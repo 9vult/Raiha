@@ -3,7 +3,7 @@ import { Database } from 'firebase-admin/database';
 
 const VERSION = "1.1.0";
 
-export default (client: Client, db: Database): void => {
+export default (client: Client, admin: any, db: Database): void => {
   client.on('messageCreate', async (message) => {
 
     // Prereqs
@@ -36,10 +36,17 @@ export default (client: Client, db: Database): void => {
 
 
     // Check if the message has attachments
+    let hasGoodAttachments = false;
     if (message.attachments && message.attachments.size !== 0) {
       // The message HAS attachments
       if (isMissingAltText(message)) {
         await message.react('❌');
+      } else {
+        hasGoodAttachments = true;
+        if (!areNotImages(message)) {
+          const ref2 = db.ref(`/Leaderboard/Native/`).child(message.author.id);
+          ref2.set(admin.database.ServerValue.increment(1));
+        }
       }
       let altStartIndex = getAltPosition(message);
       if (altStartIndex[0] !== -1) {
@@ -78,6 +85,9 @@ export default (client: Client, db: Database): void => {
             allowedMentions: allowedMentions
           });
         }
+	
+        await message.delete();
+
         let msgData = {
           OP: message.author.id,
           Reference: sentMsg.url,
@@ -85,9 +95,16 @@ export default (client: Client, db: Database): void => {
         };
         const ref = db.ref(`/Log/Author/${message.author.id}/`).child(sentMsg.id);
         ref.set(msgData);
+        const ref2 = db.ref(`/Leaderboard/Raiha/`).child(message.author.id);
+        ref2.set(admin.database.ServerValue.increment(1));
 
-        await message.delete();
         return;
+      } else {
+        // The user posted an image without alt text and did not call the bot :(
+        if (!hasGoodAttachments) {
+          const ref2 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
+          ref2.set(admin.database.ServerValue.increment(1));
+        } 
       }
     } else {
       // This message DOES NOT have attachments
@@ -138,6 +155,9 @@ export default (client: Client, db: Database): void => {
         });
       }
 
+      await op.delete();
+      await message.delete();
+
       let msgData = {
         OP: op.author.id,
         Reference: sentMsg.url,
@@ -146,8 +166,14 @@ export default (client: Client, db: Database): void => {
       const ref = db.ref(`/Log/Author/${message.author.id}/`).child(sentMsg.id);
       ref.set(msgData);
 
-      await op.delete();
-      await message.delete();
+      const ref2 = db.ref(`/Leaderboard/Raiha/`).child(message.author.id);
+      ref2.set(admin.database.ServerValue.increment(1));
+
+      if (message.author.id === op.author.id) {
+        // Decrement from the loserboard if they call on themselves after the fact
+        const ref3 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
+        ref3.set(admin.database.ServerValue.increment(-1));
+      }
       return;
     }
 
@@ -167,6 +193,18 @@ const isMissingAltText = (message: Message<boolean>): boolean => {
     }
   }
   return false;
+}
+
+/**
+ * Checks if all the attachments are not images
+ * @param message Incoming message to check
+ */
+const areNotImages = (message: Message<boolean>): boolean => {
+  for (let attachment of message.attachments) {
+    let file = attachment[1];
+    if (file.contentType?.startsWith('image')) return false;
+  }
+  return true;
 }
 
 /**
