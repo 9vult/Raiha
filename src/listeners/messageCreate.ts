@@ -40,7 +40,7 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
     if (msglc === 'r?rank') {
       postRank(message, leaderboards);
     }
-    if (msglc === 'r?loserboard') {
+    if (msglc === 'r?loserboard' || msglc === 'r?bottom') {
       postLoserboard(message, leaderboards);
     }
 
