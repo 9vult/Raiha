@@ -18,6 +18,26 @@ admin.initializeApp({
 
 var db = admin.database();
 
+var leaderboards: {[key:string]:any} = {
+  Native: {},
+  Raiha: {},
+  Loserboard: {},
+  Statistics: {}
+};
+
+db.ref('/Leaderboard/Native').on("value", function(data: {[key:string]:any}) {
+  leaderboards['Native'] = data.val();
+});
+db.ref('/Leaderboard/Raiha').on("value", function(data: {[key:string]:any}) {
+  leaderboards['Raiha'] = data.val();
+});
+db.ref('/Leaderboard/Loserboard').on("value", function(data: {[key:string]:any}) {
+  leaderboards['Loserboard'] = data.val();
+});
+db.ref('/Statistics').on("value", function(data: {[key:string]:any}) {
+  leaderboards['Statistics'] = data.val();
+});
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -28,6 +48,6 @@ const client = new Client({
 
 // Set up listeners
 ready(client);
-messageCreate(client, admin, db);
+messageCreate(client, admin, db, leaderboards);
 
 client.login(process.env.TOKEN);

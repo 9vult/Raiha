@@ -3,7 +3,7 @@ import { Database } from 'firebase-admin/database';
 
 const VERSION = "1.1.0";
 
-export default (client: Client, admin: any, db: Database): void => {
+export default (client: Client, admin: any, db: Database, leaderboards: {[key:string]:any}): void => {
   client.on('messageCreate', async (message) => {
 
     // Prereqs
@@ -35,10 +35,13 @@ export default (client: Client, admin: any, db: Database): void => {
     }
 
     if (msglc === 'r?top') {
-      db.ref('/Leaderboard/').once("value", function(data) {
-        postLeaderboard(message, data.val());
-      });
-      return;
+      postLeaderboard(message, leaderboards);
+    }
+    if (msglc === 'r?rank') {
+      postRank(message, leaderboards);
+    }
+    if (msglc === 'r?loserboard') {
+      postLoserboard(message, leaderboards);
     }
 
 
@@ -104,6 +107,10 @@ export default (client: Client, admin: any, db: Database): void => {
         ref.set(msgData);
         const ref2 = db.ref(`/Leaderboard/Raiha/`).child(message.author.id);
         ref2.set(admin.database.ServerValue.increment(1));
+
+        // Statistics
+        const ref4 = db.ref(`/Statistics/`).child('Requests');
+        ref4.set(admin.database.ServerValue.increment(1));
 
         return;
       } else {
@@ -181,6 +188,11 @@ export default (client: Client, admin: any, db: Database): void => {
         const ref3 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
         ref3.set(admin.database.ServerValue.increment(-1));
       }
+
+      // Statistics
+      const ref4 = db.ref(`/Statistics/`).child('Requests');
+      ref4.set(admin.database.ServerValue.increment(1));
+
       return;
     }
 
@@ -280,21 +292,75 @@ const generateAllowedMentions = (mentions: Array<Array<string>>): MessageMention
   };
 }
 
-const postLeaderboard = async (message: Message<boolean>, results: any) => {
-  let nativeS: any[] = [];
-  let raihaS: any[] = [];
-
-  for (var k in results['Native']) {
-    nativeS.push([k, results['Native'][k]]);
-  }
-  nativeS.sort((a, b) => { return b[1] - a[1]; });
-  for (var k in results['Raiha']) {
-    raihaS.push([k, results['Raiha'][k]]);
-  }
-  raihaS.sort((a, b) => { return b[1] - a[1]; });
+const postLeaderboard = async (message: Message<boolean>, lbs: {[key:string]:any}) => {
+  const sorted = leaderboardSorter(lbs);
+  const nativeS = sorted[0];
+  const raihaS = sorted[1];
   const embed = new EmbedBuilder()
     .setTitle(`Alt Text Leaderboards`)
     .setDescription(`__**Native**__\n${nativeS.length > 1 ? '1. <@' + nativeS[1][0] + '> — ' + nativeS[1][1] + '\n' : 'Leaderboard Error'}${nativeS.length > 2 ? '2. <@' + nativeS[2][0] + '> — ' + nativeS[2][1] + '\n' : ''}${nativeS.length > 3 ? '3. <@' + nativeS[3][0] + '> — ' + nativeS[3][1] + '\n' : ''}${nativeS.length > 4 ? '4. <@' + nativeS[4][0] + '> — ' + nativeS[4][1] + '\n' : ''}${nativeS.length > 5 ? '5. <@' + nativeS[5][0] + '> — ' + nativeS[5][1] + '\n' : ''}\n__**Raiha**__\n${raihaS.length > 0 ? '1. <@' + raihaS[0][0] + '> — ' + raihaS[0][1] + '\n' : 'Leaderboard Error'}${raihaS.length > 1 ? '2. <@' + raihaS[1][0] + '> — ' + raihaS[1][1] + '\n' : ''}${raihaS.length > 2 ? '3. <@' + raihaS[2][0] + '> — ' + raihaS[2][1] + '\n' : ''}${raihaS.length > 3 ? '4. <@' + raihaS[3][0] + '> — ' + raihaS[3][1] + '\n' : ''}${raihaS.length > 4 ? '5. <@' + raihaS[4][0] + '> — ' + raihaS[4][1] + '\n' : ''}`)
+    .setColor(0xd797ff)
+    .setFooter({ text: `So far, Raiha has served ${lbs['Statistics']['Requests']} requests.` });
+  await message.reply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
+}
+
+const postLoserboard = async (message: Message<boolean>, lbs: {[key:string]:any}) => {
+  const sorted = leaderboardSorter(lbs);
+  const loserS = sorted[2];
+  const embed = new EmbedBuilder()
+    .setTitle(`Loserboard`)
+    .setDescription(`${loserS.length > 0 ? '1. <@' + loserS[0][0] + '> - ' + loserS[0][1] + '\n' : 'Leaderboard Error'}${loserS.length > 1 ? '2. <@' + loserS[1][0] + '> - ' + loserS[1][1] + '\n' : ''}${loserS.length > 2 ? '3. <@' + loserS[2][0] + '> - ' + loserS[2][1] + '\n' : ''}${loserS.length > 3 ? '4. <@' + loserS[3][0] + '> - ' + loserS[3][1] + '\n' : ''}${loserS.length > 4 ? '5. <@' + loserS[4][0] + '> - ' + loserS[4][1] + '\n' : ''}${loserS.length > 5 ? '6. <@' + loserS[5][0] + '> - ' + loserS[5][1] + '\n' : ''}${loserS.length > 6 ? '7. <@' + loserS[6][0] + '> - ' + loserS[6][1] + '\n' : ''}${loserS.length > 7 ? '8. <@' + loserS[7][0] + '> - ' + loserS[7][1] + '\n' : ''}${loserS.length > 8 ? '9. <@' + loserS[8][0] + '> - ' + loserS[8][1] + '\n' : ''}${loserS.length > 9 ? '10. <@' + loserS[9][0] + '> - ' + loserS[9][1] + '\n' : ''}`)
     .setColor(0xd797ff);
-  await message.reply({ embeds: [embed] });
+  await message.reply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
+}
+
+const postRank = async (message: Message<boolean>, lbs: {[key:string]:any}) => {
+  const sorted = leaderboardSorter(lbs);
+  const nativeS = sorted[0];
+  const raihaS = sorted[1];
+  let iNative = 0;
+  let iRaiha = 0;
+  let nativeVal = 0;
+  let raihaVal = 0;
+  let id = message.author.id;
+  for (let obj of nativeS) {
+    iNative++;
+    if (obj[0] == id) {
+      nativeVal = obj[1];
+      break;
+    }
+  }
+  for (let obj of raihaS) {
+    iRaiha++;
+    if (obj[0] == id) {
+      raihaVal = obj[1];
+      break;
+    }
+  }
+  const embed = new EmbedBuilder()
+    .setTitle(`Alt Text Leaderboards`)
+    .setDescription(`Leaderboard ranking for <@${id}>:\n__**Native**__\n${iNative != 0 ? '#' + (iNative-1) : 'Unranked'} with a count of ${nativeVal}.\n__**Raiha**__\n${iRaiha != 0 ? '#' + iRaiha : 'Unranked'} with a count of ${raihaVal}.`)
+    .setColor(0xd797ff);
+  await message.reply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
+  }
+
+const leaderboardSorter = (lbs: {[key:string]:any}) => {
+  let nativeS: any[] = [];
+  let raihaS: any[] = [];
+  let loserS: any[] = [];
+
+  for (var k in lbs['Native']) {
+    nativeS.push([k, lbs['Native'][k]]);
+  }
+  for (var k in lbs['Raiha']) {
+    raihaS.push([k, lbs['Raiha'][k]]);
+  }
+  for (var k in lbs['Loserboard']) {
+    loserS.push([k, lbs['Loserboard'][k]]);
+  }
+  nativeS.sort((a, b) => { return b[1] - a[1]; });
+  raihaS.sort((a, b) => { return b[1] - a[1]; });
+  loserS.sort((a, b) => { return b[1] - a[1]; });
+
+  return [nativeS, raihaS, loserS];
 }
