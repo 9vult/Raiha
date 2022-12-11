@@ -34,7 +34,7 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
       return;
     }
 
-    if (msglc === 'r?top') {
+    if (msglc === 'r?top' || msglc === 'r?leaderboard') {
       postLeaderboard(message, leaderboards);
     }
     if (msglc === 'r?rank') {
@@ -184,9 +184,11 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
       ref2.set(admin.database.ServerValue.increment(1));
 
       if (message.author.id === op.author.id) {
-        // Decrement from the loserboard if they call on themselves after the fact
-        const ref3 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
-        ref3.set(admin.database.ServerValue.increment(-1));
+        if (leaderboards['Loserboard'][op.author.id] != 0) {
+          // Decrement from the loserboard if they call on themselves after the fact
+          const ref3 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
+          ref3.set(admin.database.ServerValue.increment(-1));
+        }
       }
 
       // Statistics
