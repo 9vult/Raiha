@@ -58,7 +58,7 @@ const loserboardNotifier = (data: {[key:string]:any}) => {
       if (ic != undefined) {
         if (ic != current[user]) {
           // Their score changed
-          if (ic != 0 && ic % 25 == 0) {
+          if (ic != 0 && (ic % 25 == 0 || ic == 20 || ic == 45)) {
             // Notice zone
             const embed = new EmbedBuilder()
               .setTitle(`Loserboard Alert`)

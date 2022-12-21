@@ -1,7 +1,7 @@
 import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
 import { Database } from 'firebase-admin/database';
 
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 
 export default (client: Client, admin: any, db: Database, leaderboards: {[key:string]:any}): void => {
   client.on('messageCreate', async (message) => {
