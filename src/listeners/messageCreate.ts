@@ -320,10 +320,13 @@ const postRank = async (message: Message<boolean>, lbs: {[key:string]:any}) => {
   const sorted = leaderboardSorter(lbs);
   const nativeS = sorted[0];
   const raihaS = sorted[1];
+  const loserS = sorted[2];
   let iNative = 0;
   let iRaiha = 0;
+  let iLoser = 0;
   let nativeVal = 0;
   let raihaVal = 0;
+  let loserVal = 0;
   let id = message.author.id;
   for (let obj of nativeS) {
     iNative++;
@@ -339,9 +342,16 @@ const postRank = async (message: Message<boolean>, lbs: {[key:string]:any}) => {
       break;
     }
   }
+  for (let obj of loserS) {
+    iLoser++;
+    if (obj[0] == id) {
+      loserVal = obj[1];
+      break;
+    }
+  }
   const embed = new EmbedBuilder()
     .setTitle(`Alt Text Leaderboards`)
-    .setDescription(`Leaderboard ranking for <@${id}>:\n__**Native**__\n${iNative != 0 ? '#' + (iNative-1) : 'Unranked'} with a count of ${nativeVal}.\n__**Raiha**__\n${iRaiha != 0 ? '#' + iRaiha : 'Unranked'} with a count of ${raihaVal}.`)
+    .setDescription(`Leaderboard ranking for <@${id}>:\n__**Native**__\n${iNative != 0 ? '#' + (iNative-1) : 'Unranked'} with a count of ${nativeVal}.\n__**Raiha**__\n${iRaiha != 0 ? '#' + iRaiha : 'Unranked'} with a count of ${raihaVal}.\n__**Loserboard**__\n${iLoser != 0 ? '#' + (iLoser) : 'Unranked'} with a count of ${loserVal}.`)
     .setColor(0xd797ff);
   await message.reply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
   }
