@@ -7,14 +7,6 @@ Raiha is an alt text helper bot that enables adding alt text to new or existing 
  - If there is more than one image in the message, split the alt text with `|`: `r! Image 1 | Image 2 | Image 3`.
  - Raiha supports the following triggers: `r!`, `alt:`, `id:`
 
-### Helpful commands
-
- - `r?` or `r?help`: Display usage information
- - `r?why`: Alt text explainer
- - `r?raiha`: About box
- - `r?rank`: Get your rank
- - `r?top` or `r?leaderboard`: Get the top alt text users
- - `r?loserboard` or `r?bottom`: Get the bottom alt text users
 
 ### For moderation
 

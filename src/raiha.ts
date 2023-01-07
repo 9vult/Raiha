@@ -5,11 +5,14 @@
 
 import { Client, EmbedBuilder, GatewayIntentBits, TextChannel } from "discord.js";
 import messageCreate from "./listeners/messageCreate";
+import interactionCreate from "./listeners/interactionCreate";
 import ready from "./listeners/ready";
 
 require('dotenv').config();
 var admin = require('firebase-admin');
 var firebase = require('./firebase.json');
+
+export const VERSION = "2.0.1";
 
 admin.initializeApp({
   credential: admin.credential.cert(firebase),
@@ -73,6 +76,7 @@ const loserboardNotifier = (data: {[key:string]:any}) => {
 
 // Set up listeners
 ready(client);
+interactionCreate(client, admin, db, leaderboards);
 messageCreate(client, admin, db, leaderboards);
 
 client.login(process.env.TOKEN);
