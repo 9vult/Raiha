@@ -11,10 +11,14 @@ export const postRank = async (id: string, lbs: {[key:string]:any}) => {
   let nativeVal = 0;
   let raihaVal = 0;
   let loserVal = 0;
+  let nativeHas = false;
+  let raihaHas = false;
+  let loserHas = false;
   for (let obj of nativeS) {
     iNative++;
     if (obj[0] == id) {
       nativeVal = obj[1];
+      nativeHas = true;
       break;
     }
   }
@@ -22,6 +26,7 @@ export const postRank = async (id: string, lbs: {[key:string]:any}) => {
     iRaiha++;
     if (obj[0] == id) {
       raihaVal = obj[1];
+      raihaHas = true;
       break;
     }
   }
@@ -29,9 +34,13 @@ export const postRank = async (id: string, lbs: {[key:string]:any}) => {
     iLoser++;
     if (obj[0] == id) {
       loserVal = obj[1];
+      if (loserVal != 0) loserHas = true;
       break;
     }
   }
+  if (!nativeHas) iNative = 0;
+  if (!raihaHas) iRaiha = 0;
+  if (!loserHas) iLoser = 0;
   return `Leaderboard ranking for <@${id}>:\n__**Native**__\n${iNative != 0 ? '#' + (iNative-1) : 'Unranked'} with a count of ${nativeVal}.\n__**Raiha**__\n${iRaiha != 0 ? '#' + iRaiha : 'Unranked'} with a count of ${raihaVal}.\n__**Loserboard**__\n${iLoser != 0 ? '#' + (iLoser) : 'Unranked'} with a count of ${loserVal}.`;
 }
 
