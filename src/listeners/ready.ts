@@ -53,6 +53,36 @@ export default (client: Client): void => {
       description: 'About Raiha'
     });
 
+    commands?.create({
+      name: 'set',
+      description: 'Override leaderboard values (Mod Only)',
+      options: [
+        {
+          name: 'user',
+          description: 'User to set the value of',
+          required: true,
+          type: 6 // USER
+        },
+        {
+          name: 'board',
+          description: 'Board to set',
+          required: true,
+          type: 3, // STRING
+          choices: [
+            { name: 'Native', value: 'Native' },
+            { name: 'Raiha', value: 'Raiha' },
+            { name: 'Loserboard', value: 'Loserboard' }
+          ]
+        },
+        {
+          name: 'value',
+          description: 'Value to set the board to',
+          required: true,
+          type: 10 // NUMBER
+        }
+      ]
+    });
+
     console.log('Raiha is ready to go!');
   });
 };

@@ -1,4 +1,4 @@
-import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
+import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions, GuildMemberRoleManager } from "discord.js";
 import { Database } from 'firebase-admin/database';
 
 import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
@@ -51,6 +51,38 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
 
       await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
       return;
+    }
+
+    if (commandName === 'set') {
+      await interaction.deferReply();
+
+      const { commandName, options, user, member } = interaction;
+
+      let roles = (member!.roles as GuildMemberRoleManager).cache;
+      if (roles.some(role => role.name === 'Staff')) {
+        const specifiedUser = options.getUser('user');
+        const specifiedBoard = options.get('board')!.value!;
+        let specifiedValue = options.get('value')!.value!;
+        specifiedValue = (specifiedValue! < 0) ? 0 : specifiedValue;
+
+        const ref = db.ref(`/Leaderboard/${specifiedBoard!}`).child(specifiedUser!.id);
+        ref.set(specifiedValue!);
+
+        const embed = new EmbedBuilder()
+          .setTitle(`Leaderboard Override`)
+          .setDescription(`Set <@${specifiedUser!.id}>'s **${specifiedBoard!}** value to \`${specifiedValue!}\`.`)
+          .setColor(0xd797ff);
+        await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
+        return;
+      } else {
+        // User does NOT have the 'Staff' role
+        const embed = new EmbedBuilder()
+          .setTitle(`Leaderboard Override`)
+          .setDescription(`Unfortunately, you do not have sufficient permission to perform this action.`)
+          .setColor(0xd797ff);
+        await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
+        return;
+      }
     }
 
     if (commandName === 'help') {
