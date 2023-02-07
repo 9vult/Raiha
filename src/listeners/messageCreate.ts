@@ -26,6 +26,15 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
       if (altStartIndex[0] !== -1) {
         // ----- THIS IS A SELF-TRIGGER (Scenario 1) -----
         let altTexts = parseAltText(message, altStartIndex[1]);
+        for (let alt of altTexts) {
+          if (alt.trim().length === 0) {
+            await message.react('#️⃣');
+            await message.react('❌');
+            const ref2 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
+            ref2.set(admin.database.ServerValue.increment(1));
+            return;
+          }
+        }
         if (altTexts.length !== message.attachments.size) {
           await message.react('#️⃣');
           await message.react('❌');
@@ -98,6 +107,13 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
       // Get the parent (OP)
       let op = await message.channel.messages.fetch(message.reference.messageId!);
       let altTexts = parseAltText(message, altStartIndex[1]);
+      for (let alt of altTexts) {
+        if (alt.trim().length === 0) {
+          await message.react('#️⃣');
+          await message.react('❌');
+          return;
+        }
+      }
       if (altTexts.length !== op.attachments.size) {
         await message.react('#️⃣');
         await message.react('❌');
