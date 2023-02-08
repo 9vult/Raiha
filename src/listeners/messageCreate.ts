@@ -7,6 +7,7 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
   client.on('messageCreate', async (message) => {
 
     // Prereqs
+    if (message.author.bot) return;
     let msglc = message.content.toLowerCase();
 
     // Check if the message has attachments
