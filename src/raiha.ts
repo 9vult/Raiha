@@ -60,13 +60,22 @@ const loserboardNotifier = (data: {[key:string]:any}) => {
       let ic = incoming[user];
       if (ic != undefined) {
         if (ic != current[user]) {
-          // Their score changed
-          if (ic != 0 && (ic % 25 == 0 || ic == 20 || ic == 45)) {
+          // Their score changed to hit a threshold (time to mute)
+          if (ic != 0 && (ic % 25 == 0)) {
             // Notice zone
             const embed = new EmbedBuilder()
               .setTitle(`Loserboard Alert`)
-              .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${ic}.`)
-              .setColor(0xd797ff);
+              .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${ic}. You may want to perform an Image mute if they don't begin to alt their images.`)
+              .setColor(0xf4d7ff); //more red
+            (client.channels.cache.get(chan) as TextChannel).send({ embeds: [embed] })
+          }
+          // Their score changed to be 5 strikes from a threshold (time to warn)
+          if (ic != 0 && ((ic+5) % 25 == 0)) {
+            // Notice zone
+            const embed = new EmbedBuilder()
+              .setTitle(`Loserboard Alert`)
+              .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${ic}. You should warn them that they are approaching an image mute.`)
+              .setColor(0xd797ff); //keep purple
             (client.channels.cache.get(chan) as TextChannel).send({ embeds: [embed] })
           }
         }
