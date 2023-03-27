@@ -1,4 +1,5 @@
 import { Message, MessageMentionOptions } from "discord.js";
+const fetch = require("node-fetch");
 
 // FUNCTIONS
 
@@ -30,9 +31,39 @@ export const generateAllowedMentions = (mentions: Array<Array<string>>): Message
   };
 }
 
+export const generateAIDescription = async (imageUrl: string, doOCR: boolean) => {
+  const captionEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=caption`;
+  const ocrEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=caption,read`;
+
+  let endpoint;
+  if (doOCR) endpoint = ocrEndpoint; else endpoint = captionEndpoint;
+
+  const payload = JSON.stringify({ url: imageUrl });
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json",
+      "Ocp-Apim-Subscription-Key": `${process.env.CV_API_KEY}`
+    },
+    body: payload
+  });
+  if (response.ok && !doOCR) {
+    const result: any = await response.json();
+    return `${result['captionResult']['text']} (${result['captionResult']['confidence'].toFixed(3)})`;
+  }
+  if (response.ok && doOCR) {
+    const result: any = await response.json();
+    const caption = `${result['captionResult']['text']} (${result['captionResult']['confidence'].toFixed(3)})`;
+    const text = result['readResult']['content'];
+    const description = `${caption}: ${text}`.replace('\n', ' ').substring(0, 999);
+    return description;
+  }
+  return 'Request failed.';
+}
+
 // STRINGS
 
-export const helpText = `Triggers:\n・ Raiha currently recognizes \`r!\`, \`alt:\`, and \`id:\`\n\nTo add alt text to an **existing message**:\n・ Reply to the message: \`r! Description of the image\`\n・ If the message has multiple images: separate each alt text with a \`|\`: \n\`r! Alt text 1 | Alt text 2 | ...\`\n\nTo add alt text to a **new message**:\n・Add the trigger to the end of your message or on its own line: \n\`Message text here r! Description of the image\`\n・ If the message has multiple images: separate each alt text with a \`|\`: \n\`Message text here r! Alt text 1 | Alt text 2 | ...\`\n・ The trigger & text may go on its own _single_ line at the end\n・ Message text is optional.`;
+export const helpText = `Triggers:\n・ Raiha currently recognizes \`r!\`, \`alt:\`, and \`id:\`\n\nTo add alt text to an **existing message**:\n・ Reply to the message: \`r! Description of the image\`\n・ If the message has multiple images: separate each alt text with a \`|\`: \n\`r! Alt text 1 | Alt text 2 | ...\`\n\nTo add alt text to a **new message**:\n・Add the trigger to the end of your message or on its own line: \n\`Message text here r! Description of the image\`\n・ If the message has multiple images: separate each alt text with a \`|\`: \n\`Message text here r! Alt text 1 | Alt text 2 | ...\`\n・ The trigger & text may go on at the end\n・ Message text is optional. \n\n **Special**\n To use AI Image recognition, specify \`$$\`. For text-heavy images, specify \`$$ocr\`.`;
 
 export const whyText = `Alternative Text (alt text) is a text description of an image that is generally read by a screen reader to allow the visually impared to understand the context of an image. It may also benefit people with processing disorders or impaired mental processing capabilities.\nAdditionally, alt text is beneficial even outside the realm of accessibility—on Discord, alt text is indexed and searchable, allowing you to search for images quickly and easily!`;
 

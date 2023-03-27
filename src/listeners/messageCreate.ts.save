@@ -1,4 +1,4 @@
-import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
+mport { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
 import { Database } from 'firebase-admin/database';
 
 import { generateAIDescription, generateAllowedMentions, getMentions } from '../misc/misc';
@@ -238,12 +238,8 @@ const applyAltText = async (message: Message<boolean>, altTexts: Array<string>) 
   for (let attachment of message.attachments) {
     if (altTexts[index].trim() == "$$") {
       const imageUrl = attachment[1].url;
-      const desc = await generateAIDescription(imageUrl, false);
-      altTexts[index] = desc;
-    }
-    if (altTexts[index].trim() == "$$ocr") {
-      const imageUrl = attachment[1].url;
-      const desc = await generateAIDescription(imageUrl, true);
+      console.log(attachment[1]);
+      const desc = await generateAIDescription(imageUrl);
       altTexts[index] = desc;
     }
     attachment[1].description = altTexts[index++];
