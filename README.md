@@ -11,7 +11,7 @@ Raiha is an alt text helper bot that enables adding alt text to new or existing 
 
 ### For moderation
 
-Raiha will post a message to a channel of your choosing to alert moderators when a user's Loserboard score surpasses a multiple of 25 (25, 50, 75, 100, etc), as well as 20 and 45.
+Raiha will post a message to a channel of your choosing to alert moderators when a user's Loserboard score surpasses a multiple of 25 (25, 50, 75, 100, etc), as well as reminding them if a user is 5 strikes from the threshold (20, 45, 70, 95, etc.).
 
 
 ### Setup
