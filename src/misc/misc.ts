@@ -55,7 +55,7 @@ export const generateAIDescription = async (imageUrl: string, doOCR: boolean) =>
     const result: any = await response.json();
     const caption = `${result['captionResult']['text']} (${result['captionResult']['confidence'].toFixed(3)})`;
     const text = result['readResult']['content'];
-    const description = `${caption}: ${text}`.replace('\n', ' ').substring(0, 999);
+    const description = `${caption}: ${text}`.replace('\n', ' \n').substring(0, 999);
     return description;
   }
   return 'Request failed.';
