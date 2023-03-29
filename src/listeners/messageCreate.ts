@@ -238,13 +238,18 @@ const applyAltText = async (message: Message<boolean>, altTexts: Array<string>) 
   for (let attachment of message.attachments) {
     if (altTexts[index].trim() == "$$") {
       const imageUrl = attachment[1].url;
-      const desc = await generateAIDescription(imageUrl, false);
-      altTexts[index] = desc;
+      const desc = await generateAIDescription(imageUrl, true, false);
+      altTexts[index] = desc.substring(0, 1000);
     }
-    if (altTexts[index].trim() == "$$ocr") {
+    else if (altTexts[index].trim() == "$$ocr") {
       const imageUrl = attachment[1].url;
-      const desc = await generateAIDescription(imageUrl, true);
-      altTexts[index] = desc;
+      const desc = await generateAIDescription(imageUrl, true, true);
+      altTexts[index] = desc.substring(0, 1000);
+    }
+    else if (altTexts[index].trim().endsWith("$$ocr")) {
+      const imageUrl = attachment[1].url;
+      const desc = await generateAIDescription(imageUrl, false, true);
+      altTexts[index] = (altTexts[index].replace(/\s\$\$ocr|\$\$ocr/, `: ${desc}`)).substring(0, 1000); // regex matches " $$ocr" and "$$ocr"
     }
     attachment[1].description = altTexts[index++];
     fixedFiles.push(attachment[1]);
