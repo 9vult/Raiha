@@ -1,11 +1,11 @@
-import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions, GuildMemberRoleManager } from "discord.js";
-import { Database } from 'firebase-admin/database';
+import { Client, EmbedBuilder, Message, MessageMentionOptions, GuildMemberRoleManager } from "discord.js";
+import type { Database } from '@firebase/database-types';
 
 import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
 import { generateAllowedMentions, helpText, whyText } from '../misc/misc';
 import { VERSION } from '../raiha';
 
-export default (client: Client, admin: any, db: Database, leaderboards: {[key:string]:any}): void => {
+export default (client: Client, db: Database, leaderboards: {[key:string]:any}): void => {
   client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
 

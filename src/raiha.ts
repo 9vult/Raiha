@@ -90,7 +90,7 @@ const loserboardNotifier = (data: {[key:string]:any}) => {
 
 // Set up listeners
 ready(client);
-interactionCreate(client, admin, db, leaderboards);
-messageCreate(client, admin, db, leaderboards);
+interactionCreate(client, db, leaderboards);
+messageCreate(client, db, leaderboards);
 
 client.login(process.env.TOKEN);
