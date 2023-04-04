@@ -1,4 +1,5 @@
-import { Message, MessageMentionOptions } from "discord.js";
+import { EmbedBuilder, Message, MessageMentionOptions, TextChannel } from "discord.js";
+import { CLIENT } from "../raiha";
 const fetch = require("node-fetch");
 
 // FUNCTIONS
@@ -68,6 +69,54 @@ export const generateAIDescription = async (imageUrl: string, doCaption: boolean
     return description;
   }
   return 'Request failed.';
+}
+
+export const react = async (message: Message<boolean>, config: {[key:string]:any}, reaction: string) => {
+  let serverValue;
+  try {
+    switch (reaction) {
+      case 'ERR_MISSING_ALT_TEXT':
+        serverValue = config[message.guild!.id]['errorNoAlt'];
+        if (serverValue == 'default') {
+          await message.react('❌');
+          return;
+        } else {
+          await message.react(serverValue);
+          return;
+        }
+      case 'ERR_MISMATCH':
+        serverValue = config[message.guild!.id]['errorMismatch'];
+        if (serverValue == 'default') {
+          await message.react('#️⃣');
+          await message.react('❌');
+          return;
+        } else {
+          await message.react(serverValue);
+          return;
+        }
+      case 'ERR_NOT_REPLY':
+        serverValue = config[message.guild!.id]['errorNotReply'];
+        if (serverValue == 'default') {
+          await message.react('↩');
+          await message.react('❌');
+          return;
+        } else {
+          await message.react(serverValue);
+          return;
+        }
+    }
+  } catch (err) {
+    await sendError(config, message.guild!.id, "Could not react", (<Error>err).message);
+  }
+}
+
+export const sendError = async (config: {[key:string]:any}, guildId: string, errorTitle: string, errorBody: string) => {
+  let chan = config[guildId!]['errorChannel'];
+  const embed = new EmbedBuilder()
+    .setTitle(`Error: ${errorTitle}`)
+    .setDescription(errorBody)
+    .setColor(0xf4d7ff);
+    await (CLIENT.channels.cache.get(chan) as TextChannel).send({ embeds: [embed] })
 }
 
 // STRINGS

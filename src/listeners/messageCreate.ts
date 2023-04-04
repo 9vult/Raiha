@@ -1,11 +1,11 @@
 import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
 import { Database } from 'firebase-admin/database';
 
-import { generateAIDescription, generateAllowedMentions, getMentions } from '../misc/misc';
+import { generateAIDescription, generateAllowedMentions, getMentions, react, sendError } from '../misc/misc';
 
 export default (client: Client, admin: any, db: Database, leaderboards: {[key:string]:any}): void => {
   client.on('messageCreate', async (message) => {
-
+    const config: {[key:string]:any} = leaderboards['Configuration'];
     // Prereqs
     if (message.author.bot) return;
     let msglc = message.content.toLowerCase();
@@ -15,7 +15,7 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
     if (message.attachments && message.attachments.size !== 0) {
       // The message HAS attachments
       if (isMissingAltText(message)) {
-        await message.react('❌');
+        await react(message, config, 'ERR_MISSING_ALT_TEXT');
       } else {
         hasGoodAttachments = true;
         if (!areNotImages(message)) {
@@ -29,16 +29,14 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
         let altTexts = parseAltText(message, altStartIndex[1]);
         for (let alt of altTexts) {
           if (alt.trim().length === 0) {
-            await message.react('#️⃣');
-            await message.react('❌');
+            await react(message, config, 'ERR_MISMATCH');
             const ref2 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
             ref2.set(admin.database.ServerValue.increment(1));
             return;
           }
         }
         if (altTexts.length !== message.attachments.size) {
-          await message.react('#️⃣');
-          await message.react('❌');
+          await react(message, config, 'ERR_MISMATCH');
           return;
         }
         for (let alt of altTexts) {
@@ -70,7 +68,11 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
           });
         }
 	
-        await message.delete();
+        try {
+          await message.delete();
+        } catch (err) {
+          sendError(config, message.guild!.id, "Could not delete", (<Error>err).message);
+        }
 
         let msgData = {
           OP: message.author.id,
@@ -100,8 +102,7 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
       if (altStartIndex[0] !== 0) return; // Reply trigger must be at start of message (if it exists)
       if (!message.reference) {
         // Trigger message is not a reply
-        await message.react('↩');
-        await message.react('❌');
+        await react(message, config, 'ERR_NOT_REPLY');
         return;
       }
       // ----- THIS IS A REPLY TRIGGER (Scenario 2) -----
@@ -110,14 +111,12 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
       let altTexts = parseAltText(message, altStartIndex[1]);
       for (let alt of altTexts) {
         if (alt.trim().length === 0) {
-          await message.react('#️⃣');
-          await message.react('❌');
+          await react(message, config, 'ERR_MISMATCH');
           return;
         }
       }
       if (altTexts.length !== op.attachments.size) {
-        await message.react('#️⃣');
-        await message.react('❌');
+        await react(message, config, 'ERR_MISMATCH');
         return;
       }
       for (let alt of altTexts) {
@@ -150,8 +149,12 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
         });
       }
 
-      await op.delete();
-      await message.delete();
+      try {
+        await op.delete();
+        await message.delete();
+      } catch (err) {
+        sendError(config, message.guild!.id, "Could not delete", (<Error>err).message);
+      }
 
       let msgData = {
         OP: op.author.id,

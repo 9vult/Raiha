@@ -25,7 +25,8 @@ var leaderboards: {[key:string]:any} = {
   Native: {},
   Raiha: {},
   Loserboard: {},
-  Statistics: {}
+  Statistics: {},
+  Configuration: {}
 };
 
 const client = new Client({
@@ -35,6 +36,7 @@ const client = new Client({
     GatewayIntentBits.MessageContent
   ]
 });
+export const CLIENT: Client = client;
 
 db.ref('/Leaderboard/Native').on("value", function(data: {[key:string]:any}) {
   leaderboards['Native'] = data.val();
@@ -48,6 +50,9 @@ db.ref('/Leaderboard/Loserboard').on("value", function(data: {[key:string]:any})
 });
 db.ref('/Statistics').on("value", function(data: {[key:string]:any}) {
   leaderboards['Statistics'] = data.val();
+});
+db.ref('/Configuration').on("value", function(data: {[key:string]:any}) {
+  leaderboards['Configuration'] = data.val();
 });
 
 // Loserboard notifier
