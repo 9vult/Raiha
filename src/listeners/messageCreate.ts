@@ -1,9 +1,10 @@
 import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
-import { Database } from 'firebase-admin/database';
+import { ServerValue } from 'firebase-admin/database';
+import type { Database } from '@firebase/database-types';
 
 import { generateAIDescription, generateAllowedMentions, getMentions, react, sendError } from '../misc/misc';
 
-export default (client: Client, admin: any, db: Database, leaderboards: {[key:string]:any}): void => {
+export default (client: Client, db: Database, leaderboards: {[key:string]:any}): void => {
   client.on('messageCreate', async (message) => {
     const config: {[key:string]:any} = leaderboards['Configuration'];
     // Prereqs
@@ -20,7 +21,7 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
         hasGoodAttachments = true;
         if (!areNotImages(message)) {
           const ref2 = db.ref(`/Leaderboard/Native/`).child(message.author.id);
-          ref2.set(admin.database.ServerValue.increment(1));
+          ref2.set(ServerValue.increment(1));
         }
       }
       let altStartIndex = getAltPosition(message);
@@ -31,7 +32,7 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
           if (alt.trim().length === 0) {
             await react(message, config, 'ERR_MISMATCH');
             const ref2 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
-            ref2.set(admin.database.ServerValue.increment(1));
+            ref2.set(ServerValue.increment(1));
             return;
           }
         }
@@ -82,18 +83,18 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
         const ref = db.ref(`/Log/Author/${message.author.id}/`).child(sentMsg.id);
         ref.set(msgData);
         const ref2 = db.ref(`/Leaderboard/Raiha/`).child(message.author.id);
-        ref2.set(admin.database.ServerValue.increment(1));
+        ref2.set(ServerValue.increment(1));
 
         // Statistics
         const ref4 = db.ref(`/Statistics/`).child('Requests');
-        ref4.set(admin.database.ServerValue.increment(1));
+        ref4.set(ServerValue.increment(1));
 
         return;
       } else {
         // The user posted an image without alt text and did not call the bot :(
         if (!hasGoodAttachments) {
           const ref2 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
-          ref2.set(admin.database.ServerValue.increment(1));
+          ref2.set(ServerValue.increment(1));
         } 
       }
     } else {
@@ -165,19 +166,19 @@ export default (client: Client, admin: any, db: Database, leaderboards: {[key:st
       ref.set(msgData);
 
       const ref2 = db.ref(`/Leaderboard/Raiha/`).child(message.author.id);
-      ref2.set(admin.database.ServerValue.increment(1));
+      ref2.set(ServerValue.increment(1));
 
       if (message.author.id === op.author.id) {
         if (leaderboards['Loserboard'][op.author.id] != 0) {
           // Decrement from the loserboard if they call on themselves after the fact
           const ref3 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
-          ref3.set(admin.database.ServerValue.increment(-1));
+          ref3.set(ServerValue.increment(-1));
         }
       }
 
       // Statistics
       const ref4 = db.ref(`/Statistics/`).child('Requests');
-      ref4.set(admin.database.ServerValue.increment(1));
+      ref4.set(ServerValue.increment(1));
 
       return;
     }
