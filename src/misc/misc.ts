@@ -68,7 +68,12 @@ export const generateAIDescription = async (imageUrl: string, doCaption: boolean
     const description = text.replace('\n', ' \n');
     return description;
   }
-  return 'Request failed.';
+  try {
+    const result = await response.json();
+    return `Request failed. (${response.status}) - ${result['error']['code']}: ${result['error']['message']}`;
+  } catch (err) {
+    return `Request failed. (${response.status})`;
+  }
 }
 
 export const react = async (message: Message<boolean>, config: {[key:string]:any}, reaction: string) => {
