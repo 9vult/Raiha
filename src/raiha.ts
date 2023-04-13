@@ -56,37 +56,45 @@ db.ref('/Configuration').on("value", function(data: {[key:string]:any}) {
 });
 
 // Loserboard notifier
-const loserboardNotifier = (data: {[key:string]:any}) => {
-  let incoming = data.val();
-    let current = leaderboards['Loserboard'];
-    const chan: string = `${process.env.MOD_CHANNEL}`;
+const loserboardNotifier = async (data: { [key: string]: any }) => {
+  let incomingData = data.val();
+  let currentData = leaderboards['Loserboard'];
+  const chan: string = `${process.env.MOD_CHANNEL}`;
 
-    for (let user of Object.keys(current)) {
-      let ic = incoming[user];
-      if (ic != undefined) {
-        if (ic != current[user]) {
-          // Their score changed to hit a threshold (time to mute)
-          if (ic != 0 && (ic % 25 == 0)) {
-            // Notice zone
-            const embed = new EmbedBuilder()
-              .setTitle(`Loserboard Alert`)
-              .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${ic}. You may want to perform an Image mute if they don't begin to alt their images.`)
-              .setColor(0xf4d7ff); //more red
-            (client.channels.cache.get(chan) as TextChannel).send({ embeds: [embed] })
-          }
-          // Their score changed to be 5 strikes from a threshold (time to warn)
-          if (ic != 0 && ((ic+5) % 25 == 0)) {
-            // Notice zone
-            const embed = new EmbedBuilder()
-              .setTitle(`Loserboard Alert`)
-              .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${ic}. You should warn them that they are approaching an image mute.`)
-              .setColor(0xd797ff); //keep purple
-            (client.channels.cache.get(chan) as TextChannel).send({ embeds: [embed] })
-          }
+  for (let user of Object.keys(currentData)) {
+    let ic = incomingData[user];
+    if (ic && ic > currentData[user]) {
+      // Check if mute threshold hit
+      if (ic != 0 && (ic % 25 == 0)) {
+        // Wait and see if it remains this way
+        await new Promise(r => setTimeout(r, 30000));
+        currentData = leaderboards['Loserboard'];
+        if (ic <= currentData[user]) { // The board has gone up since, or remained the same
+          // Notice zone
+          const embed = new EmbedBuilder()
+            .setTitle(`Loserboard Alert`)
+            .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${ic}.\nAn image mute may be warrented.`)
+            .setColor(0xf4d7ff); //more red
+          (client.channels.cache.get(chan) as TextChannel).send({ embeds: [embed] })
+        }
+      }
+      // Check if warn threshold hit
+      if (ic != 0 && ((ic + 5) % 25 == 0)) {
+        // Wait and see if it remains this way
+        await new Promise(r => setTimeout(r, 30000));
+        currentData = leaderboards['Loserboard'];
+        if (ic <= currentData[user]) {
+          // Notice zone
+          const embed = new EmbedBuilder()
+            .setTitle(`Loserboard Alert`)
+            .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${ic}.\nThey should be warned that they are approaching an image mute.`)
+            .setColor(0xf4d7ff); //more red
+          (client.channels.cache.get(chan) as TextChannel).send({ embeds: [embed] })
         }
       }
     }
-}
+  }
+};
 
 // Set up listeners
 ready(client);
