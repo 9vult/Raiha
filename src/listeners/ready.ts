@@ -30,12 +30,28 @@ export default (client: Client): void => {
     
     commands?.create({
       name: 'leaderboard',
-      description: 'Get the alt text leaderboard'
+      description: 'Get the alt text leaderboard',
+      options: [
+        {
+          name: 'page',
+          description: 'Page of the leaderboard to get',
+          required: false,
+          type: 10 // NUMBER
+        }
+      ]
     });
 
     commands?.create({
       name: 'loserboard',
-      description: 'Get the alt text loserboard'
+      description: 'Get the alt text loserboard',
+      options: [
+        {
+          name: 'page',
+          description: 'Page of the loserboard to get',
+          required: false,
+          type: 10 // NUMBER
+        }
+      ]
     });
 
     commands?.create({

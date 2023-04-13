@@ -29,9 +29,12 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
     if (commandName === 'leaderboard') {
       await interaction.deferReply();
 
-      const content = await postLeaderboard(leaderboards);
+      let page = 1;
+      if (options.get('page')) page = parseInt(`${options.get('page')!.value!}`); // WHY DOESN'T getNumber() EXIST WHEN IT SAYS IT DOES
+
+      const content = await postLeaderboard(leaderboards, page);
       const embed = new EmbedBuilder()
-        .setTitle(`Alt Text Leaderboards`)
+        .setTitle(`Alt Text Leaderboards${page !== 1 ? ' (Page ' + page + ')' : ''}`)
         .setDescription(content.text)
         .setFooter({ text: content.footer })
         .setColor(0xd797ff);
@@ -43,9 +46,11 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
     if (commandName === 'loserboard') {
       await interaction.deferReply();
 
-      const content = await postLoserboard(leaderboards);
+      let page = 1;      
+      if (options.get('page')) page = parseInt(`${options.get('page')!.value!}`); // WHY DOESN'T getNumber() EXIST WHEN IT SAYS IT DOES
+      const content = await postLoserboard(leaderboards, page);
       const embed = new EmbedBuilder()
-        .setTitle(`Loserboard`)
+        .setTitle(`Loserboard${page !== 1 ? ' (Page ' + page + ')' : ''}`)
         .setDescription(content)
         .setColor(0xd797ff);
 
