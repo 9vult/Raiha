@@ -72,7 +72,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
         try {
           await message.delete();
         } catch (err) {
-          sendError(config, message.guild!.id, "Could not delete", (<Error>err).message);
+          sendError(config, message.guild!.id, "Could not delete", (<Error>err).message, message.author!.id, message.url);
         }
 
         let msgData = {
@@ -154,7 +154,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
         await op.delete();
         await message.delete();
       } catch (err) {
-        sendError(config, message.guild!.id, "Could not delete", (<Error>err).message);
+        sendError(config, message.guild!.id, "Could not delete", (<Error>err).message, message.author!.id, message.url);
       }
 
       let msgData = {
