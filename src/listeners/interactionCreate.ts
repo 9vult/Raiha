@@ -46,7 +46,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
     if (commandName === 'loserboard') {
       await interaction.deferReply();
 
-      let page = 1;      
+      let page = 1;     
       if (options.get('page')) page = parseInt(`${options.get('page')!.value!}`); // WHY DOESN'T getNumber() EXIST WHEN IT SAYS IT DOES
       const content = await postLoserboard(leaderboards, page);
       const embed = new EmbedBuilder()
@@ -54,6 +54,60 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
         .setDescription(content)
         .setColor(0xd797ff);
 
+      await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
+      return;
+    }
+
+    if (commandName === 'delete') {
+      await interaction.deferReply({ ephemeral: true });
+
+      const messageID = options.get('msgid')!.value!;
+      
+      let message: Message<boolean>;
+      try {
+        message = await interaction.channel!.messages!.fetch(`${messageID}`);
+      } catch (err) {
+        const embed = new EmbedBuilder()
+          .setTitle(`Raiha Message Delete`)
+          .setDescription(`Could not find the message with ID ${messageID}.`)
+          .setColor(0xd797ff);
+        await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
+        return;
+      }
+      
+      let isOP = false;
+      let currentMessageID = messageID;
+      // loop safety
+      let idx = 0;
+      while (idx < 15) { // if there's ever more than 15... there's a bigger issue than the ability to delete lol
+        idx++;
+        const dbRef = db.ref();
+        const ref = await dbRef.child(`/Actions/${message.guild!.id}/${message.channel!.id}/${currentMessageID}`).get();
+        if (!ref.exists()) break;
+        const refVal = await ref.val();
+        if (refVal['Parent'] == ref.key) {
+          // Reached the top-level message
+          if (refVal['OP'] == user.id) {
+            isOP = true;
+            break;
+          } else break;
+        } else {
+          // Still must traverse upwards
+          currentMessageID = refVal['Parent'];
+        }
+      }
+
+      let responseText = '';
+      if (isOP) {
+        try { await message.delete(); } catch (err) { /* TODO: something here */ }
+        responseText = 'The message was successfully deleted.';
+      } else {
+        responseText = 'You are not the author of this message, or this message is not a Raiha message.';
+      }
+      const embed = new EmbedBuilder()
+        .setTitle(`Raiha Message Delete`)
+        .setDescription(responseText)
+        .setColor(0xd797ff);
       await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
       return;
     }

@@ -11,6 +11,10 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
     if (message.author.bot) return;
     let msglc = message.content.toLowerCase();
 
+    let altAuthor = message.author.id;
+    let opAuthor = '';
+    let msgParentID = '0';
+
     // Check if the message has attachments
     let hasGoodAttachments = false;
     if (message.attachments && message.attachments.size !== 0) {
@@ -27,6 +31,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       let altStartIndex = getAltPosition(message);
       if (altStartIndex[0] !== -1) {
         // ----- THIS IS A SELF-TRIGGER (Scenario 1) -----
+        opAuthor = message.author.id;
         let altTexts = parseAltText(message, altStartIndex[1]);
         for (let alt of altTexts) {
           if (alt.trim().length === 0) {
@@ -76,11 +81,12 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
         }
 
         let msgData = {
-          OP: message.author.id,
-          Reference: sentMsg.url,
+          Alt: altAuthor,
+          OP: opAuthor,
+	  Parent: sentMsg.id,
           Request: message.content.substring(altStartIndex[0])
         };
-        const ref = db.ref(`/Log/Author/${message.author.id}/`).child(sentMsg.id);
+        const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`).child(sentMsg.id);
         ref.set(msgData);
         const ref2 = db.ref(`/Leaderboard/Raiha/`).child(message.author.id);
         ref2.set(ServerValue.increment(1));
@@ -109,6 +115,8 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       // ----- THIS IS A REPLY TRIGGER (Scenario 2) -----
       // Get the parent (OP)
       let op = await message.channel.messages.fetch(message.reference.messageId!);
+      opAuthor = op.author.id;
+      msgParentID = op.id;
       let altTexts = parseAltText(message, altStartIndex[1]);
       for (let alt of altTexts) {
         if (alt.trim().length === 0) {
@@ -158,11 +166,12 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       }
 
       let msgData = {
-        OP: op.author.id,
-        Reference: sentMsg.url,
+        Alt: altAuthor,
+        OP: opAuthor,
+        Parent: msgParentID,
         Request: message.content.substring(altStartIndex[0])
       };
-      const ref = db.ref(`/Log/Author/${message.author.id}/`).child(sentMsg.id);
+      const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`).child(sentMsg.id);
       ref.set(msgData);
 
       const ref2 = db.ref(`/Leaderboard/Raiha/`).child(message.author.id);

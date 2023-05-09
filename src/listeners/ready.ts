@@ -55,6 +55,19 @@ export default (client: Client): void => {
     });
 
     commands?.create({
+      name: 'delete',
+      description: 'Delete a Raiha message',
+      options: [
+        {
+          name: 'msgid',
+          description: 'Message ID of the message to delete',
+          required: true,
+          type: 3 // STRING
+        }
+      ]
+    });
+
+    commands?.create({
       name: 'help',
       description: 'Raiha help'
     });
