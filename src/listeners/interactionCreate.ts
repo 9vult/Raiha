@@ -79,11 +79,16 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       let currentMessageID = messageID;
       // loop safety
       let idx = 0;
+      let prevRefVal;
       while (idx < 15) { // if there's ever more than 15... there's a bigger issue than the ability to delete lol
         idx++;
         const dbRef = db.ref();
         const ref = await dbRef.child(`/Actions/${message.guild!.id}/${message.channel!.id}/${currentMessageID}`).get();
-        if (!ref.exists()) break;
+        if (!ref.exists()) {
+          if (prevRefVal && prevRefVal['OP'] == user.id)
+            isOP = true; // experimental(?) to fix deletion not working on after-the-fact alts
+          break;
+        }
         const refVal = await ref.val();
         if (refVal['Parent'] == ref.key) {
           // Reached the top-level message
@@ -94,6 +99,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
         } else {
           // Still must traverse upwards
           currentMessageID = refVal['Parent'];
+          prevRefVal = refVal;
         }
       }
 
