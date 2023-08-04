@@ -1,6 +1,6 @@
 import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
 
-export const postRank = async (id: string, lbs: {[key:string]:any}) => {
+export const postRank = async (id: string, lbs: { [key: string]: any }) => {
   const sorted = leaderboardSorter(lbs);
   const nativeS = sorted[0];
   const raihaS = sorted[1];
@@ -44,7 +44,7 @@ export const postRank = async (id: string, lbs: {[key:string]:any}) => {
   return `Leaderboard ranking for <@${id}>:\n__**Native**__\n${iNative != -1 ? '#' + (iNative) : 'Unranked'} with a count of ${nativeVal}.\n__**Raiha**__\n${iRaiha != -1 ? '#' + iRaiha : 'Unranked'} with a count of ${raihaVal}.\n__**Loserboard**__\n${iLoser != -1 ? '#' + (iLoser) : 'Unranked'} with a count of ${loserVal}.`;
 }
 
-export const postLeaderboard = async (lbs: {[key:string]:any}, page: number) => {
+export const postLeaderboard = async (lbs: { [key: string]: any }, page: number): Promise<{ text: string, footer: string }> => {
   const sorted = leaderboardSorter(lbs);
   const nativeResult = generateText(sorted[0], 0, page, 5);
   const raihaResult = generateText(sorted[1], 0, page, 5);
@@ -55,7 +55,7 @@ export const postLeaderboard = async (lbs: {[key:string]:any}, page: number) => 
   return result;
 }
 
-export const postLoserboard = async (lbs: {[key:string]:any}, page: number) => {
+export const postLoserboard = async (lbs: { [key: string]: any }, page: number): Promise<string> => {
   const sorted = leaderboardSorter(lbs);
   const loserS = sorted[2];
   return generateText(loserS, 0, page, 10);
@@ -68,14 +68,14 @@ const generateText = (board: any[], startIndex: number, page: number, pageLength
     return 'No results';
   }
   for (let i = startPosition; i < startPosition + pageLength; i++) {
-    
+
     if (i > board.length - 1) return result;
-    result = `${result}${i !== startPosition ? '\n' : ''}${i+1}. <@${board[i][0]}> - ${board[i][1]}`;
+    result = `${result}${i !== startPosition ? '\n' : ''}${i + 1}. <@${board[i][0]}> - ${board[i][1]}`;
   }
   return result;
 }
 
-export const leaderboardSorter = (lbs: {[key:string]:any}) => {
+export const leaderboardSorter = (lbs: { [key: string]: any }) => {
   let nativeS: any[] = [];
   let raihaS: any[] = [];
   let loserS: any[] = [];

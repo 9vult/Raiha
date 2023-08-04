@@ -1,46 +1,37 @@
-import { EmbedBuilder, Message, MessageMentionOptions, TextChannel } from "discord.js";
+import { Collection, EmbedBuilder, Message, MessageMentionOptions, TextChannel } from "discord.js";
 import { CLIENT } from "../raiha";
-const fetch = require("node-fetch");
 
 // FUNCTIONS
 
+interface MentionProps {
+  users?: Array<string>,
+  roles?: Array<string>
+}
 /**
  * Get the mentions from the message
  * @param message The message to get mentions for
- * @returns Lists of mentioned users and roles
+ * @returns MentionProps
  */
-export const getMentions = (message: Message<boolean>): Array<Array<string>> => {
-  let users: Array<string> = [];
-  let roles: Array<string> = [];
-  if (message.mentions) {
-    for (let mention of message.mentions.users) users.push(mention[0]);
-    for (let mention of message.mentions.roles) roles.push(mention[0]);
-  }
-  return [users, roles];
+export const getMentions = ({ mentions }: Message<boolean>): MentionProps => {
+  return {
+    users: Array.from(mentions?.users.keys() ?? []),
+    roles: Array.from(mentions?.roles.keys() ?? [])
+  };
 }
 
 /**
  * Generate a list of allowed mentions
- * @param mentions [[Users], [Roles]]
- * @return MessageMentionOptions object
+ * @param MentionProps
+ * @return MessageMentionOptions
  */
-export const generateAllowedMentions = (mentions: Array<Array<string>>): MessageMentionOptions => {
-  return {
-    parse: [],
-    users: mentions[0],
-    roles: mentions[1]
-  };
+export const generateAllowedMentions = (mentions?: MentionProps): MessageMentionOptions => {
+  return { parse: [], users: [], roles: [], ...mentions };
 }
 
 export const generateAIDescription = async (imageUrl: string, doCaption: boolean, doOCR: boolean) => {
-  const captionEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=caption`;
-  const ocrEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=read`;
-  const bothEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=caption,read`;
-
-  let endpoint;
-  if (doCaption && doOCR) endpoint = bothEndpoint; 
-  else if (doCaption) endpoint = captionEndpoint;
-  else endpoint = ocrEndpoint;
+  const features = doCaption && doOCR ? "caption,read" :
+    doCaption ? "caption" : "read"
+  const endpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=${features}`;
 
   const payload = JSON.stringify({ url: imageUrl });
   const response = await fetch(endpoint, {
@@ -51,13 +42,21 @@ export const generateAIDescription = async (imageUrl: string, doCaption: boolean
     },
     body: payload
   });
+  if (!response.ok) {
+    try {
+      const result = await response.json() as { error: { code: number, message: string } };
+      return `Request failed. (${response.status}) - ${result.error.code}: ${result.error.message}`;
+    } catch (err) {
+      return `Request failed. (${response.status})`;
+    }
+  }
   if (response.ok && doCaption && !doOCR) {
     const result: any = await response.json();
-    return `${result['captionResult']['text']} (${result['captionResult']['confidence'].toFixed(3)})`;
+    return `${result.captionResult.text} (${result.captionResult.confidence.toFixed(3)})`;
   }
   if (response.ok && doCaption && doOCR) {
     const result: any = await response.json();
-    const caption = `${result['captionResult']['text']} (${result['captionResult']['confidence'].toFixed(3)})`;
+    const caption = `${result.captionResult.text} (${result.captionResult.confidence.toFixed(3)})`;
     const text = result['readResult']['content'];
     const description = `${caption}: ${text}`.replace('\n', ' \n');
     return description;
@@ -68,15 +67,11 @@ export const generateAIDescription = async (imageUrl: string, doCaption: boolean
     const description = text.replace('\n', ' \n');
     return description;
   }
-  try {
-    const result = await response.json();
-    return `Request failed. (${response.status}) - ${result['error']['code']}: ${result['error']['message']}`;
-  } catch (err) {
-    return `Request failed. (${response.status})`;
-  }
+
 }
 
-export const react = async (message: Message<boolean>, config: {[key:string]:any}, reaction: string) => {
+type ReactionType = 'ERR_MISSING_ALT_TEXT' | 'ERR_MISMATCH' | 'ERR_NOT_REPLY'
+export async function react(message: Message<boolean>, config: { [key: string]: any }, reaction: ReactionType) {
   let serverValue;
   try {
     switch (reaction) {
@@ -84,45 +79,42 @@ export const react = async (message: Message<boolean>, config: {[key:string]:any
         serverValue = config[message.guild!.id]['errorNoAlt'];
         if (serverValue == 'default') {
           await message.react('❌');
-          return;
         } else {
           await message.react(serverValue);
-          return;
         }
+        break;
       case 'ERR_MISMATCH':
         serverValue = config[message.guild!.id]['errorMismatch'];
         if (serverValue == 'default') {
           await message.react('#️⃣');
           await message.react('❌');
-          return;
         } else {
           await message.react(serverValue);
-          return;
         }
+        break;
       case 'ERR_NOT_REPLY':
         serverValue = config[message.guild!.id]['errorNotReply'];
         if (serverValue == 'default') {
           await message.react('↩');
           await message.react('❌');
-          return;
         } else {
           await message.react(serverValue);
-          return;
         }
+        break;
     }
   } catch (err) {
-    await sendError(config, message.guild!.id, "Could not react", (<Error>err).message, message.author.id, message.url);
+    await sendError(config, message.guild!.id, "Could not react", (err as Error)?.message, message.author.id, message.url);
   }
 }
 
-export const sendError = async (config: {[key:string]:any}, guildId: string, errorTitle: string, errorBody: string, authorId: string|number, url: string) => {
-  let chan = config[guildId!]['errorChannel'];
+export async function sendError(config: { [key: string]: any }, guildId: string, errorTitle: string, errorBody: string, authorId: string | number, url: string) {
+  let chan = config[guildId]['errorChannel'];
   // console.log(CLIENT);
   const embed = new EmbedBuilder()
     .setTitle(`Error: ${errorTitle}`)
     .setDescription(`${errorBody}\nAuthor ${authorId}\nURL ${url}`)
     .setColor(0xf4d7ff);
-    await (CLIENT.channels.cache.get(chan) as TextChannel).send({ embeds: [embed] })
+  await (CLIENT.channels.cache.get(chan) as TextChannel).send({ embeds: [embed] })
 }
 
 // STRINGS

@@ -2,7 +2,7 @@
   "name": "raiha",
   "version": "1.0.0",
   "description": "",
-  "main": "raiha.ts",
+  "main": "src/raiha.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/raiha.ts"
@@ -10,10 +10,11 @@
   "author": "9volt",
   "license": "ISC",
   "dependencies": {
+    "@types/node-fetch": "^2.6.4",
     "discord.js": "^14.9.0",
     "dotenv": "^16.0.3",
     "firebase-admin": "^11.3.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@firebase/database-types": "^0.10.4",
