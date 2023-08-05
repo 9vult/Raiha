@@ -1,18 +1,18 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { OptionalCommandArguments } from '../commands';
 import { postRank } from '../misc/leaderboards';
-import { generateAllowedMentions } from '../misc/misc';
+import { getAllowedMentions } from '../misc/misc';
 
-export default async function (interaction: ChatInputCommandInteraction, { leaderboards, options, user }: OptionalCommandArguments) {
+export default async function (interaction: ChatInputCommandInteraction, { options, user }: OptionalCommandArguments) {
     await interaction.deferReply();
     const specifiedUser = options.getUser('user') || user;
     const id = specifiedUser.id;
 
-    const content = await postRank(id, leaderboards);
+    const content = await postRank(id);
     const embed = new EmbedBuilder()
         .setTitle("Alt Text Leaderboards")
         .setDescription(content)
         .setColor(0xd797ff);
 
-    await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+    await interaction.editReply({ embeds: [embed], allowedMentions: getAllowedMentions() });
 }

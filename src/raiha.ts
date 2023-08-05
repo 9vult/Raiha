@@ -13,30 +13,32 @@ require('dotenv').config();
 const admin = require('firebase-admin');
 const firebase = require('../credentials.json');
 
-export const VERSION = "2.0.1";
-
 admin.initializeApp({
   credential: admin.credential.cert(firebase),
   databaseURL: process.env.DATABASE_URL
 });
 
+export const VERSION = "2.0.1";
+
 export const db = admin.database();
 
 export interface Data {
-  Native: Leaderboard,
-  Raiha: Leaderboard,
-  Loserboard: Leaderboard,
-  Statistics: { Requests: number },
-  Configuration: Configuration
+  Native: Leaderboard;
+  Raiha: Leaderboard;
+  Loserboard: Leaderboard;
+  Statistics: { Requests: number };
+  Configuration: Configuration;
 }
-type Leaderboard = { [key: string]: number };
-export type Configuration = {
+export type Leaderboard = { [key: string]: number };
+export type SortedLeaderboard = Array<{ user: string, value: number }>;
+export interface Configuration {
   [key: string]: {
-    errorMismatch: string,
-    errorNoAlt: string,
-    errorNotReply: string
+    errorMismatch: string;
+    errorNoAlt: string;
+    errorNotReply: string;
+    errorChannel: string;
   }
-};
+}
 
 export const leaderboards: Data = {
   Native: {},

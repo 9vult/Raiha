@@ -1,11 +1,11 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { OptionalCommandArguments } from '../commands';
-import { generateAllowedMentions, helpText, whyText } from '../misc/misc';
+import { getAllowedMentions, helpText, whyText } from '../misc/misc';
 import { VERSION } from '../raiha';
 
 export default async function (interaction: ChatInputCommandInteraction, { commandName }: OptionalCommandArguments) {
     const embed = selectEmbed(commandName)
-    await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+    await interaction.reply({ embeds: [embed], allowedMentions: getAllowedMentions() });
 }
 
 function selectEmbed(embedType: string) {

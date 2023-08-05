@@ -29,6 +29,14 @@ Create a `.env` file in the project root and add the following to it:
 
 Then, place your `firebase.json` in the `/src/` folder.
 
+If you want to allow custom emotes for reacting to errors on specific servers, set up your database's configuration as follows:
+- Configuration
+    - (Guild ID)
+        - errorMismatch: string ("default" or your emote)
+        - errorNoAlt: string ("default" or your emote)
+        - errorNotReply: string ("default" or your emote)\
+You can choose to add as many of the properties that you need, but the program will revert to default if none is available.
+
 ### Development
 
 Pull requests are always welcome.

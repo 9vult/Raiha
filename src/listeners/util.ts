@@ -1,5 +1,5 @@
-import { Message, Attachment } from 'discord.js';
-import { generateAIDescription } from '../misc/misc';
+import { Message } from 'discord.js';
+import { getAIDescription } from '../misc/misc';
 
 /**
  * Check if any of the attachments on the message are missing alt text 
@@ -25,17 +25,20 @@ export function hasImages(message: Message<boolean>): boolean {
 /**
  * Check if this message contains a trigger word
  * @param message Incoming message to check
- * @returns Position of the end of the trigger, or [-1]
+ * @returns [number of the initial index, number of the index after the prefix]
  */
+const searchPatterns = {
+    "r!": /\br!/,
+    "alt:": /\balt:/,
+    "id:": /\bid:/
+}
 export function getAltPosition(message: Message<boolean>): [number, number] {
     const lowerCase = message.content.toLowerCase();
-    let comIndex = lowerCase.search(/\br!/);    // r!
-    let altIndex = lowerCase.search(/\balt:/);  // alt:
-    let idIndex = lowerCase.search(/\bid:/);    // id:
-
-    if (comIndex !== -1) return [comIndex, comIndex + 2]
-    else if (altIndex !== -1) return [altIndex, altIndex + 4]
-    else if (idIndex !== -1) return [idIndex, idIndex + 3]
+    for (const [searchWord, searchRegex] of Object.entries(searchPatterns)) {
+        const index = lowerCase.search(searchRegex);
+        if (index == -1) continue;
+        return [index, index + searchWord.length]
+    }
     return [-1, -1];
 }
 
@@ -45,29 +48,29 @@ export function getAltPosition(message: Message<boolean>): [number, number] {
  * @param altTexts Alt texts to apply
  * @returns Fixed attachments
  */
-export async function applyAltText(message: Message<boolean>, altTexts: Array<string>) {
-    let fixedFiles: Array<Attachment> = [];
-    let index = 0;
-    for (const attachment of Array.from(message.attachments.values())) {
-        if (altTexts[index].trim() == "$$") {
-            const imageUrl = attachment.url;
-            const desc = await generateAIDescription(imageUrl, true, false);
-            altTexts[index] = desc.substring(0, 1000);
-        }
-        else if (altTexts[index].trim() == "$$ocr") {
-            const imageUrl = attachment.url;
-            const desc = await generateAIDescription(imageUrl, true, true);
-            altTexts[index] = desc.substring(0, 1000);
-        }
-        else if (altTexts[index].trim().endsWith("$$ocr")) {
-            const imageUrl = attachment.url;
-            const desc = await generateAIDescription(imageUrl, false, true);
-            altTexts[index] = (altTexts[index].replace(/\s\$\$ocr|\$\$ocr/, `: ${desc}`)).substring(0, 1000); // regex matches " $$ocr" and "$$ocr"
-        }
-        attachment.description = altTexts[index++];
-        fixedFiles.push(attachment);
-    }
-    return fixedFiles;
+export async function applyAltText(message: Message<boolean>, altTexts: string[]) {
+    const fixedFiles = Array.from(message.attachments.values())
+        .map(async (attachment, index) => {
+            if (altTexts[index].trim() == "$$") {
+                const imageUrl = attachment.url;
+                const desc = await getAIDescription(imageUrl, true, false);
+                altTexts[index] = desc.substring(0, 1000);
+            }
+            else if (altTexts[index].trim() == "$$ocr") {
+                const imageUrl = attachment.url;
+                const desc = await getAIDescription(imageUrl);
+                altTexts[index] = desc.substring(0, 1000);
+            }
+            else if (altTexts[index].trim().endsWith("$$ocr")) {
+                const imageUrl = attachment.url;
+                const desc = await getAIDescription(imageUrl, false);
+                // regex matches " $$ocr" and "$$ocr"
+                altTexts[index] = (altTexts[index].replace(/\s\$\$ocr|\$\$ocr/, `: ${desc}`)).substring(0, 1000);
+            }
+            attachment.description = altTexts[index];
+            return attachment;
+        })
+    return await Promise.all(fixedFiles);
 }
 
 /**
@@ -76,7 +79,7 @@ export async function applyAltText(message: Message<boolean>, altTexts: Array<st
  * @param startIndex Index the alt text starts at
  * @returns Array of alt texts
  */
-export function parseAltText(message: Message<boolean>, startIndex: number): Array<string> {
+export function parseAltText(message: Message<boolean>, startIndex: number): string[] {
     return message.content.substring(startIndex).trim().split("|");
 }
 

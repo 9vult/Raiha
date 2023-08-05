@@ -1,8 +1,9 @@
 import { ChatInputCommandInteraction, EmbedBuilder, Message } from 'discord.js';
 import { OptionalCommandArguments } from '../commands';
-import { generateAllowedMentions } from '../misc/misc';
+import { getAllowedMentions } from '../misc/misc';
+import { db } from '../raiha';
 
-export default async function (interaction: ChatInputCommandInteraction, { user, db, options }: OptionalCommandArguments) {
+export default async function (interaction: ChatInputCommandInteraction, { user, options }: OptionalCommandArguments) {
     await interaction.deferReply({ ephemeral: true });
 
     const messageID = options.getString('msgid')!.valueOf();
@@ -15,7 +16,7 @@ export default async function (interaction: ChatInputCommandInteraction, { user,
             .setTitle(`Raiha Message Delete`)
             .setDescription(`Could not find the message with ID ${messageID}.`)
             .setColor(0xd797ff);
-        await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+        await interaction.editReply({ embeds: [embed], allowedMentions: getAllowedMentions() });
         return;
     }
 
@@ -59,5 +60,5 @@ export default async function (interaction: ChatInputCommandInteraction, { user,
         embed.setDescription("You are not the author of this message, or this message is not a Raiha message.");
     }
 
-    await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+    await interaction.editReply({ embeds: [embed], allowedMentions: getAllowedMentions() });
 }

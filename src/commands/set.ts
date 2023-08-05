@@ -1,9 +1,10 @@
 import { ChatInputCommandInteraction, EmbedBuilder, GuildMemberRoleManager } from 'discord.js';
 import { OptionalCommandArguments } from '../commands';
 import { postLeaderboard } from '../misc/leaderboards';
-import { generateAllowedMentions } from '../misc/misc';
+import { getAllowedMentions } from '../misc/misc';
+import { db } from '../raiha';
 
-export default async function (interaction: ChatInputCommandInteraction, { options, member, db }: OptionalCommandArguments) {
+export default async function (interaction: ChatInputCommandInteraction, { options, member }: OptionalCommandArguments) {
     await interaction.deferReply();
 
     const roles = (member.roles as GuildMemberRoleManager).cache;
@@ -20,13 +21,13 @@ export default async function (interaction: ChatInputCommandInteraction, { optio
             .setTitle("Leaderboard Override")
             .setDescription(`Set <@${specifiedUser.id}>'s **${specifiedBoard}** value to \`${specifiedValue}\`.`)
             .setColor(0xd797ff);
-        await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+        await interaction.editReply({ embeds: [embed], allowedMentions: getAllowedMentions() });
     } else {
         // User does NOT have the 'Staff' role
         const embed = new EmbedBuilder()
             .setTitle("Leaderboard Override")
             .setDescription("You do not have sufficient permission to perform this action.")
             .setColor(0xd797ff);
-        await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+        await interaction.editReply({ embeds: [embed], allowedMentions: getAllowedMentions() });
     }
 }

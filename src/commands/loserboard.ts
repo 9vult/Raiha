@@ -1,17 +1,24 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Component, ComponentType, EmbedBuilder } from 'discord.js';
 import { OptionalCommandArguments } from '../commands';
 import { postLoserboard } from '../misc/leaderboards';
-import { generateAllowedMentions } from '../misc/misc';
+import { getAllowedMentions } from '../misc/misc';
+import { startCollections } from './leaderboard';
 
-export default async function (interaction: ChatInputCommandInteraction, { leaderboards, options }: OptionalCommandArguments) {
+export default async function (interaction: ChatInputCommandInteraction, { options }: OptionalCommandArguments) {
     await interaction.deferReply();
 
     const page = options.getNumber('page')?.valueOf() ?? 1;
-    const content = await postLoserboard(leaderboards, page);
-    const embed = new EmbedBuilder()
-        .setTitle(`Loserboard${page !== 1 ? ` (Page ${page})` : ''}`)
-        .setDescription(content)
-        .setColor(0xd797ff);
+    const embedContents = await postLoserboard();
+    const embeds = embedContents.map(content =>
+        new EmbedBuilder()
+            .setTitle(`Loserboard (Page ${page}/${embedContents.length})`)
+            .setDescription(content)
+            .setColor(0xd797ff));
 
-    await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+    const reply = await interaction.editReply({
+        embeds: [embeds[0]],
+        allowedMentions: getAllowedMentions()
+    });
+
+    startCollections(interaction, reply, page, embeds);
 }

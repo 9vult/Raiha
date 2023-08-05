@@ -23,7 +23,4 @@ export interface OptionalCommandArguments {
     options: Omit<CommandInteractionOptionResolver, 'getMessage' | 'getFocused'>;
     user: User;
     member: GuildMember
-    client: Client;
-    db: Database;
-    leaderboards: { [key: string]: any };
 }
