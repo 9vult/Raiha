@@ -1,5 +1,4 @@
 import { ChatInputCommandInteraction, Client, CommandInteractionOptionResolver, GuildMember, User } from 'discord.js';
-import { Database } from '@firebase/database-types';
 import rank from './commands/rank';
 import leaderboard from './commands/leaderboard';
 import loserboard from './commands/loserboard';

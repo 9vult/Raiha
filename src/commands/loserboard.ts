@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Component, ComponentType, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { OptionalCommandArguments } from '../commands';
 import { postLoserboard } from '../misc/leaderboards';
 import { getAllowedMentions } from '../misc/misc';

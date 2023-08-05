@@ -1,7 +1,7 @@
 import { EmbedBuilder, Message } from "discord.js";
 import { ServerValue } from 'firebase-admin/database';
-import { getAllowedMentions, getMentions, react, sendError } from '../misc/misc';
-import { isMissingAltText, hasImages, getAltPosition, parseAltText, applyAltText } from './util';
+import { getAllowedMentions, react, sendError } from '../misc/misc';
+import { isMissingAltText, hasImages, getAltPosition, parseAltText, applyAltText } from './messageUtil';
 import { db, leaderboards } from '../raiha';
 
 export default async function (message: Message) {
@@ -71,9 +71,9 @@ async function postAltText(message: Message, original: Message, altStartIndex: [
   // We have the correct number of alts
   const messageContent = {
     files: await applyAltText(original, altTexts),
-    content: `_From <@${original.author.id}>${!isSameAuthor ? ` With alt text by <@${message.author.id}>` : ""
-      }${altStartIndex[0] > 0 ? `:_\n\n${message.content.substring(0, altStartIndex[0])}` : '._'}`,
-    allowedMentions: getAllowedMentions(getMentions(message))
+    content: `_From <@${original.author.id}>${!isSameAuthor ? ` With alt text by <@${message.author.id}>` : ""}` +
+      `${altStartIndex[0] > 0 ? `:_\n\n${message.content.substring(0, altStartIndex[0])}` : '._'}`,
+    allowedMentions: getAllowedMentions(message.mentions)
   };
 
   const sentMessage = original.reference ?

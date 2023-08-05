@@ -1,6 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder, GuildMemberRoleManager } from 'discord.js';
 import { OptionalCommandArguments } from '../commands';
-import { postLeaderboard } from '../misc/leaderboards';
 import { getAllowedMentions } from '../misc/misc';
 import { db } from '../raiha';
 
