@@ -7,8 +7,8 @@ import { startCollections } from './leaderboard';
 export default async function (interaction: ChatInputCommandInteraction, { options }: OptionalCommandArguments) {
     await interaction.deferReply();
 
-    const page = options.getNumber('page')?.valueOf() ?? 1;
     const embedContents = await postLoserboard();
+    const page = Math.min(Math.max(1, options.getNumber('page')?.valueOf() ?? 1), embedContents.length);
     const embeds = embedContents.map(content =>
         new EmbedBuilder()
             .setTitle(`Loserboard (Page ${page}/${embedContents.length})`)
@@ -16,7 +16,7 @@ export default async function (interaction: ChatInputCommandInteraction, { optio
             .setColor(0xd797ff));
 
     const reply = await interaction.editReply({
-        embeds: [embeds[0]],
+        embeds: [embeds[page - 1]],
         allowedMentions: getAllowedMentions()
     });
 

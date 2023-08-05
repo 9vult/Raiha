@@ -6,8 +6,8 @@ import { getAllowedMentions } from '../misc/misc';
 export default async function (interaction: ChatInputCommandInteraction, { options }: OptionalCommandArguments) {
     await interaction.deferReply();
 
-    let page = options.getNumber('page')?.valueOf() ?? 1;
     const embedContents = await postLeaderboard();
+    const page = Math.min(Math.max(1, options.getNumber('page')?.valueOf() ?? 1), embedContents.length);
     const embeds = embedContents.map(({ text, footer }) =>
         new EmbedBuilder()
             .setTitle(`Alt Text Leaderboards (Page ${page}/${embedContents.length})`)
@@ -16,7 +16,7 @@ export default async function (interaction: ChatInputCommandInteraction, { optio
             .setColor(0xd797ff));
 
     const reply = await interaction.editReply({
-        embeds: [embeds[0]],
+        embeds: [embeds[page - 1]],
         allowedMentions: getAllowedMentions()
     });
 
