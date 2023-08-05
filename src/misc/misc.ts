@@ -20,15 +20,13 @@ export async function getAIDescription(imageUrl: string, doCaption = true, doOCR
   const features = doCaption && doOCR ? "caption,read" :
     doCaption ? "caption" : "read"
   const endpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=${features}`;
-
-  const payload = JSON.stringify({ url: imageUrl });
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
       "Content-Type": "application/json",
       "Ocp-Apim-Subscription-Key": `${process.env.CV_API_KEY}`
     },
-    body: payload
+    body: JSON.stringify({ url: imageUrl })
   });
   if (!response.ok) {
     try {
@@ -43,7 +41,7 @@ export async function getAIDescription(imageUrl: string, doCaption = true, doOCR
       // Caption & OCR
       const result: any = await response.json();
       const caption = `${result.captionResult.text} (${result.captionResult.confidence.toFixed(3)})`;
-      const text = result['readResult']['content'];
+      const text = result.readResult.content;
       const description = `${caption}: ${text}`.replace('\n', ' \n');
       return description;
     }
@@ -96,13 +94,13 @@ export async function react(message: Message<boolean>, reaction: ReactionType) {
 }
 
 export async function sendError(guildId: string, errorTitle: string, errorBody: string, authorId: string | number, url: string) {
-  const chan = leaderboards.Configuration[guildId].errorChannel;
+  const channel = leaderboards.Configuration[guildId].errorChannel;
   // console.log(CLIENT);
   const embed = new EmbedBuilder()
     .setTitle(`Error: ${errorTitle}`)
     .setDescription(`${errorBody}\nAuthor ${authorId}\nURL ${url}`)
     .setColor(0xf4d7ff);
-  await (CLIENT.channels.cache.get(chan) as TextChannel)?.send({ embeds: [embed] })
+  await (CLIENT.channels.cache.get(channel) as TextChannel)?.send({ embeds: [embed] })
 }
 
 // STRINGS
