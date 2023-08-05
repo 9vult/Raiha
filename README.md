@@ -23,7 +23,6 @@ Create a `.env` file in the project root and add the following to it:
 
  - `TOKEN=[yourtoken]`
  - `DATABASE_URL=[databaseurl]`
- - `MOD_CHANNEL=[channelid]`
  - `CV_API_KEY=[yourkey]`
  - `CV_ENDPOINT=[endpoint, with trailing /]`
 
@@ -32,10 +31,11 @@ Then, place your `firebase.json` in the `/src/` folder.
 If you want to allow custom emotes or set up other options, set up your database's configuration as follows:
 - Configuration
     - (Guild ID)
-        - errorMismatch: string ("default" or your emote)
-        - errorNoAlt: string ("default" or your emote)
-        - errorNotReply: string ("default" or your emote)
-        - 
+        - errorMismatch: string (your emote)
+        - errorNoAlt: string (your emote)
+        - errorNotReply: string (your emote)
+        - modChannel: string (output of loserboard warnings)
+        - errorChannel: string (output of error warnings)
 You can choose to add as many of the properties that you need, but the program will revert to default if none is available.
 
 ### Development
