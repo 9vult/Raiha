@@ -90,8 +90,8 @@ export function parseAltText(message: Message<boolean>, startIndex: number): str
  * @param startIndex Index the alt text starts at
  * @returns Array of alt texts
  */
-export async function checkLoserboard(id: string) {
-    const channel = CLIENT.channels.cache.get(process.env.MOD_CHANNEL ?? "") as TextChannel;
+export async function checkLoserboard(id: string, guildId: string) {
+    const channel = CLIENT.channels.cache.get(leaderboards.Configuration[guildId]?.modChannel ?? "") as TextChannel;
     if (!channel) return;
     const { Loserboard, Milestones } = leaderboards;
 

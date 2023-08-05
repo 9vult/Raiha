@@ -28,7 +28,7 @@ async function handleAttachments(message: Message) {
       await db.ref(`/Leaderboard/Loserboard/`)
         .child(message.author.id)
         .set(ServerValue.increment(1));
-      checkLoserboard(message.author.id);
+      checkLoserboard(message.author.id, message.guild!.id);
     }
     return;
   }
@@ -37,7 +37,7 @@ async function handleAttachments(message: Message) {
     await db.ref(`/Leaderboard/Loserboard/`)
       .child(message.author.id)
       .set(ServerValue.increment(1));
-    checkLoserboard(message.author.id);
+    checkLoserboard(message.author.id, message.guild!.id);
   }
 }
 
