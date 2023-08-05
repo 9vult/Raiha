@@ -34,7 +34,7 @@ If you want to allow custom emotes for reacting to errors on specific servers, s
     - (Guild ID)
         - errorMismatch: string ("default" or your emote)
         - errorNoAlt: string ("default" or your emote)
-        - errorNotReply: string ("default" or your emote)\
+        - errorNotReply: string ("default" or your emote)
 You can choose to add as many of the properties that you need, but the program will revert to default if none is available.
 
 ### Development
