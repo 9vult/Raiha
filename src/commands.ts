@@ -10,7 +10,7 @@ export default {
     rank,
     leaderboard,
     loserboard,
-    deleteAltMessage,
+    delete: deleteAltMessage,
     set,
     help: showEmbed,
     why: showEmbed,

@@ -12,7 +12,6 @@ export default async function (interaction: ChatInputCommandInteraction, { optio
         const specifiedBoard = options.getString('board')!.valueOf();
         const specifiedValue = Math.max(0, options.getNumber('value')!.valueOf());
 
-
         await db.ref(`/Leaderboard/${specifiedBoard}`)
             .child(specifiedUser.id)
             .set(specifiedValue);
