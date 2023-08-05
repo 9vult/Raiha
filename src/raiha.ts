@@ -22,7 +22,7 @@ export const VERSION = "2.0.1";
 
 export const db = admin.database();
 
-export interface Data {
+interface Data {
   Native: Leaderboard;
   Raiha: Leaderboard;
   Loserboard: Leaderboard;
@@ -31,8 +31,8 @@ export interface Data {
   Configuration: Configuration;
 }
 export type Leaderboard = { [key: string]: number };
-export type SortedLeaderboard = Array<{ user: string, value: number }>;
-export interface Configuration {
+export type SortedLeaderboard = { user: string, value: number }[];
+interface Configuration {
   [key: string]: {
     errorMismatch?: string;
     errorNoAlt?: string;
