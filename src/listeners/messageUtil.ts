@@ -104,7 +104,7 @@ export async function checkLoserboard(id: string, guildId: string) {
     if (!lossesMilestone || losses <= lossesMilestone) return;
     const warrantsMute = losses % 25 == 0;
     // Wait and see if it remains this way
-    await new Promise(r => setTimeout(r, 2000))//30000));
+    await new Promise(r => setTimeout(r, 30000));
     if (losses < Loserboard[id]) return; // The board has gone up since, or remained the same
     // Notice zone
     const embed = new EmbedBuilder()
