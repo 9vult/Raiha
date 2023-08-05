@@ -1,20 +1,10 @@
-import { Client } from "discord.js";
+import { CLIENT } from '../raiha';
 
-export default (client: Client): void => {
-  if (!client.user || !client.application) return;
-
-  // Command registration
-  // const guildId = '';
-  // const guild = client.guilds.cache.get(guildId);
-  let commands;
-
-  // if (guild) { 
-  //   commands = guild.commands;
-  // } else {
-  commands = client.application?.commands;
-  // }
-
-  commands?.create({
+export default function () {
+  const commands = CLIENT.application?.commands;
+  if (!CLIENT.user || !commands) return;
+  
+  commands.create({
     name: 'rank',
     description: 'Get ranks on the alt text leaderboards',
     options: [
@@ -27,7 +17,7 @@ export default (client: Client): void => {
     ]
   });
 
-  commands?.create({
+  commands.create({
     name: 'leaderboard',
     description: 'Get the alt text leaderboard',
     options: [
@@ -40,7 +30,7 @@ export default (client: Client): void => {
     ]
   });
 
-  commands?.create({
+  commands.create({
     name: 'loserboard',
     description: 'Get the alt text loserboard',
     options: [
@@ -53,7 +43,7 @@ export default (client: Client): void => {
     ]
   });
 
-  commands?.create({
+  commands.create({
     name: 'delete',
     description: 'Delete a Raiha message',
     options: [
@@ -66,22 +56,22 @@ export default (client: Client): void => {
     ]
   });
 
-  commands?.create({
+  commands.create({
     name: 'help',
     description: 'Raiha help'
   });
 
-  commands?.create({
+  commands.create({
     name: 'why',
     description: 'Why use alt text?'
   });
 
-  commands?.create({
+  commands.create({
     name: 'about',
     description: 'About Raiha'
   });
 
-  commands?.create({
+  commands.create({
     name: 'set',
     description: 'Override leaderboard values (Mod Only)',
     options: [

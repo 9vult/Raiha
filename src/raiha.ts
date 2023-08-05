@@ -75,7 +75,7 @@ db.ref('/Statistics').on("value", (data: DataSnapshot) => leaderboards.Statistic
 db.ref('/Configuration').on("value", (data: DataSnapshot) => leaderboards.Configuration = data.val() as Configuration);
 
 // Set up listeners
-CLIENT.on('ready', () => ready(CLIENT));
+CLIENT.on('ready', ready);
 CLIENT.on('interactionCreate', interaction => interactionCreate(interaction));
 CLIENT.on('messageCreate', message => messageCreate(message));
 CLIENT.login(process.env.TOKEN);
