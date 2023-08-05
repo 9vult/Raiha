@@ -27,11 +27,14 @@ interface Data {
   Raiha: Leaderboard;
   Loserboard: Leaderboard;
   Milestones: Leaderboard;
-  Statistics: { Requests: number };
+  Statistics: Statistics;
   Configuration: Configuration;
 }
 export type Leaderboard = { [key: string]: number };
 export type SortedLeaderboard = { user: string, value: number }[];
+interface Statistics {
+  Requests?: number
+}
 interface Configuration {
   [key: string]: {
     errorMismatch?: string;
@@ -39,6 +42,11 @@ interface Configuration {
     errorNotReply?: string;
     errorChannel?: string;
     modChannel?: string;
+    // unused toggles
+    ai?: boolean;
+    modRole?: string;
+    leaderboard?: boolean;
+    loserboard?: boolean;
   }
 }
 
@@ -47,7 +55,7 @@ export const leaderboards: Data = {
   Raiha: {},
   Loserboard: {},
   Milestones: {},
-  Statistics: { Requests: 0 },
+  Statistics: {},
   Configuration: {}
 };
 
@@ -59,24 +67,12 @@ export const CLIENT = new Client({
   ]
 });
 
-db.ref('/Leaderboard/Native').on("value", (data: DataSnapshot) => {
-  leaderboards.Native = data.val() as Leaderboard;
-});
-db.ref('/Leaderboard/Raiha').on("value", (data: DataSnapshot) => {
-  leaderboards.Raiha = data.val() as Leaderboard;
-});
-db.ref('/Leaderboard/Loserboard').on("value", (data: DataSnapshot) => {
-  leaderboards.Loserboard = data.val() as Leaderboard;
-});
-db.ref('/Leaderboard/Loserboard Milestones').on("value", (data: DataSnapshot) => {
-  leaderboards.Milestones = data.val() as Leaderboard;
-});
-db.ref('/Statistics').on("value", (data: DataSnapshot) => {
-  leaderboards.Statistics = data.val();
-});
-db.ref('/Configuration').on("value", (data: DataSnapshot) => {
-  leaderboards.Configuration = data.val() as Configuration;
-});
+db.ref('/Leaderboard/Native').on("value", (data: DataSnapshot) => leaderboards.Native = data.val() as Leaderboard);
+db.ref('/Leaderboard/Raiha').on("value", (data: DataSnapshot) => leaderboards.Raiha = data.val() as Leaderboard);
+db.ref('/Leaderboard/Loserboard').on("value", (data: DataSnapshot) => leaderboards.Loserboard = data.val() as Leaderboard);
+db.ref('/Leaderboard/Loserboard Milestones').on("value", (data: DataSnapshot) => leaderboards.Milestones = data.val() as Leaderboard);
+db.ref('/Statistics').on("value", (data: DataSnapshot) => leaderboards.Statistics = data.val() as Statistics);
+db.ref('/Configuration').on("value", (data: DataSnapshot) => leaderboards.Configuration = data.val() as Configuration);
 
 // Set up listeners
 CLIENT.on('ready', () => ready(CLIENT));

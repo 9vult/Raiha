@@ -1,23 +1,23 @@
 import { Leaderboard, SortedLeaderboard, leaderboards } from '../raiha';
 
-export async function postLeaderboard(): Promise<Array<{ text: string, footer: string }>> {
+export async function postLeaderboard(): Promise<{ text: string, footer: string }[]> {
   const { Native, Raiha, Statistics: { Requests } } = leaderboards;
   const [native, raiha] = [getSortedLeaderboard(Native), getSortedLeaderboard(Raiha)]
-    .map(leaderboard => getText(leaderboard, 5));
+    .map(leaderboard => getLeaderboardPages(leaderboard, 5));
 
   const embedContents = Array.from({ length: Math.max(native.length, raiha.length) }, (_, index) => ({
     text: `__**Native**__\n${native[index] ?? "N/A"}\n__**Raiha**__\n${raiha[index] ?? "N/A"}`,
-    footer: `So far, Raiha has served ${Requests} requests.`
+    footer: `So far, Raiha has served ${Requests ?? 0} requests.`
   }));
   return embedContents;
 }
 
 export async function postLoserboard(): Promise<string[]> {
   const loserS = getSortedLeaderboard(leaderboards.Loserboard);
-  return getText(loserS, 10);
+  return getLeaderboardPages(loserS, 10);
 }
 
-function getText(board: SortedLeaderboard, pageLength: number): string[] {
+function getLeaderboardPages(board: SortedLeaderboard, pageLength: number): string[] {
   const results = [];
   for (let i = 0; i < board.length; i += pageLength) {
     const selectedGroup = board.slice(i, i + pageLength)
