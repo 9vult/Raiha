@@ -1,8 +1,8 @@
 import { EmbedBuilder, Message } from "discord.js";
 import { ServerValue } from 'firebase-admin/database';
 import { getAllowedMentions, react, sendError } from '../misc/misc';
-import { isMissingAltText, hasImages, getAltPosition, parseAltText, applyAltText } from './messageUtil';
-import { db, leaderboards } from '../raiha';
+import { isMissingAltText, hasImages, getAltPosition, parseAltText, applyAltText, checkLoserboard } from './messageUtil';
+import { db } from '../raiha';
 
 export default async function (message: Message) {
   if (message.author.bot) return;
@@ -17,7 +17,7 @@ async function handleAttachments(message: Message) {
   if (noAltText) {
     await react(message, 'ERR_MISSING_ALT_TEXT');
   } else if (hasImages(message)) {
-    db.ref(`/Leaderboard/Native/`)
+    await db.ref(`/Leaderboard/Native/`)
       .child(message.author.id)
       .set(ServerValue.increment(1));
   }
@@ -25,17 +25,19 @@ async function handleAttachments(message: Message) {
   if (altStartIndex[0] === -1) {
     // The user posted an image without alt text and did not call the bot :(
     if (noAltText) {
-      db.ref(`/Leaderboard/Loserboard/`)
+      await db.ref(`/Leaderboard/Loserboard/`)
         .child(message.author.id)
         .set(ServerValue.increment(1));
+      checkLoserboard(message.author.id);
     }
     return;
   }
   const successfulPost = await postAltText(message, message, altStartIndex);
   if (!successfulPost) {
-    db.ref(`/Leaderboard/Loserboard/`)
+    await db.ref(`/Leaderboard/Loserboard/`)
       .child(message.author.id)
       .set(ServerValue.increment(1));
+    checkLoserboard(message.author.id);
   }
 }
 
@@ -53,7 +55,7 @@ async function handleNoAttachments(message: Message) {
   const original = await message.channel.messages.fetch(message.reference.messageId!);
   const successfulPost = await postAltText(message, original, altStartIndex);
   if (successfulPost && message.author.id == original.author.id) {
-    db.ref(`/Leaderboard/Loserboard/`)
+    await db.ref(`/Leaderboard/Loserboard/`)
       .child(message.author.id)
       .set(ServerValue.increment(-1));
   }
@@ -87,7 +89,7 @@ async function postAltText(message: Message, original: Message, altStartIndex: [
     sendError(message.guild!.id, "Could not delete", (<Error>err).message, message.author!.id, message.url);
   }
 
-  db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`)
+  await db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`)
     .child(sentMessage.id)
     .set({
       Alt: message.author.id,
@@ -95,10 +97,10 @@ async function postAltText(message: Message, original: Message, altStartIndex: [
       Parent: sentMessage.id,
       Request: message.content.substring(altStartIndex[0])
     });
-  db.ref(`/Leaderboard/Raiha/`)
+  await db.ref(`/Leaderboard/Raiha/`)
     .child(message.author.id)
     .set(ServerValue.increment(1));
-  db.ref(`/Statistics/`)
+  await db.ref(`/Statistics/`)
     .child('Requests')
     .set(ServerValue.increment(1));
   return true;

@@ -13,8 +13,9 @@ export default async function (interaction: ChatInputCommandInteraction, { optio
         const specifiedValue = Math.max(0, options.getNumber('value')!.valueOf());
 
 
-        const ref = db.ref(`/Leaderboard/${specifiedBoard}`).child(specifiedUser.id);
-        ref.set(specifiedValue!);
+        await db.ref(`/Leaderboard/${specifiedBoard}`)
+            .child(specifiedUser.id)
+            .set(specifiedValue);
 
         const embed = new EmbedBuilder()
             .setTitle("Leaderboard Override")

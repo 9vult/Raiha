@@ -58,33 +58,33 @@ export async function getAIDescription(imageUrl: string, doCaption = true, doOCR
   return description;
 }
 
-type ReactionType = 'ERR_MISSING_ALT_TEXT' | 'ERR_MISMATCH' | 'ERR_NOT_REPLY'
+type ReactionType = 'ERR_MISSING_ALT_TEXT' | 'ERR_MISMATCH' | 'ERR_NOT_REPLY';
 export async function react(message: Message<boolean>, reaction: ReactionType) {
   const config = leaderboards.Configuration;
-  const serverInfo = config[message.guild!.id];
+  const { errorNoAlt, errorMismatch, errorNotReply } = config[message.guild!.id];
   try {
     switch (reaction) {
       case 'ERR_MISSING_ALT_TEXT':
-        if ((serverInfo?.errorNoAlt ?? "default") == "default") {
+        if (!errorNoAlt || errorNoAlt == "default") {
           await message.react('❌');
         } else {
-          await message.react(serverInfo.errorNoAlt);
+          await message.react(errorNoAlt);
         }
         break;
       case 'ERR_MISMATCH':
-        if ((serverInfo?.errorMismatch ?? "default") == "default") {
+        if (!errorMismatch || errorMismatch == "default") {
           await message.react('#️⃣');
           await message.react('❌');
         } else {
-          await message.react(serverInfo.errorMismatch);
+          await message.react(errorMismatch);
         }
         break;
       case 'ERR_NOT_REPLY':
-        if ((serverInfo?.errorNotReply ?? "default") == "default") {
+        if (!errorNotReply || errorNotReply == "default") {
           await message.react('↩');
           await message.react('❌');
         } else {
-          await message.react(serverInfo.errorNotReply);
+          await message.react(errorNotReply);
         }
         break;
     }
@@ -94,13 +94,14 @@ export async function react(message: Message<boolean>, reaction: ReactionType) {
 }
 
 export async function sendError(guildId: string, errorTitle: string, errorBody: string, authorId: string | number, url: string) {
-  const channel = leaderboards.Configuration[guildId].errorChannel;
-  // console.log(CLIENT);
+  const channel = CLIENT.channels.cache.get(leaderboards.Configuration[guildId].errorChannel ?? "") as TextChannel;
+  if (!channel) return;
+
   const embed = new EmbedBuilder()
     .setTitle(`Error: ${errorTitle}`)
     .setDescription(`${errorBody}\nAuthor ${authorId}\nURL ${url}`)
     .setColor(0xf4d7ff);
-  await (CLIENT.channels.cache.get(channel) as TextChannel)?.send({ embeds: [embed] })
+  await channel.send({ embeds: [embed] });
 }
 
 // STRINGS

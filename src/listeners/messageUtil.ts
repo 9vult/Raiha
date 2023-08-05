@@ -1,5 +1,6 @@
-import { Message } from 'discord.js';
+import { EmbedBuilder, Message, TextChannel } from 'discord.js';
 import { getAIDescription } from '../misc/misc';
+import { CLIENT, db, leaderboards } from '../raiha';
 
 /**
  * Check if any of the attachments on the message are missing alt text 
@@ -83,3 +84,34 @@ export function parseAltText(message: Message<boolean>, startIndex: number): str
     return message.content.substring(startIndex).trim().split("|");
 }
 
+/**
+ * Alerts loserboard in the moderation channel
+ * @param message Message to parse
+ * @param startIndex Index the alt text starts at
+ * @returns Array of alt texts
+ */
+export async function checkLoserboard(id: string) {
+    const channel = CLIENT.channels.cache.get(process.env.MOD_CHANNEL ?? "") as TextChannel;
+    if (!channel) return;
+    const { Loserboard, Milestones } = leaderboards;
+
+    const losses = Loserboard[id];
+    if (!losses) return;
+    // Check if mute threshold hit
+    if (losses % 25 && (losses + 5) % 25) return;
+    // Check for passing milestones
+    const lossesMilestone = Milestones[id];
+    if (!lossesMilestone || losses <= lossesMilestone) return;
+    const warrantsMute = losses % 25 == 0;
+    // Wait and see if it remains this way
+    await new Promise(r => setTimeout(r, 2000))//30000));
+    if (losses < Loserboard[id]) return; // The board has gone up since, or remained the same
+    // Notice zone
+    const embed = new EmbedBuilder()
+        .setTitle(`Loserboard Alert`)
+        .setDescription(`Hello! User <@${id}>'s Loserboard score is now ${losses}.\n${warrantsMute ? "An image mute may be warranted." : "They should be warned that they are approaching an image mute."}`)
+        .setColor(0xf4d7ff);
+
+    await db.ref(`/Leaderboard/Loserboard Milestones/`).child(id).set(losses);
+    channel.send({ embeds: [embed] })
+};
