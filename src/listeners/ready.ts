@@ -1,60 +1,46 @@
+import { SlashCommandBuilder } from 'discord.js';
 import { CLIENT } from '../raiha';
 
 export default function () {
   const commands = CLIENT.application?.commands;
   if (!CLIENT.user || !commands) return;
-  
-  commands.create({
-    name: 'rank',
-    description: 'Get ranks on the alt text leaderboards',
-    options: [
-      {
-        name: 'user',
-        description: 'User to get the rank of',
-        required: false,
-        type: 6 // USER
-      }
-    ]
-  });
 
-  commands.create({
-    name: 'leaderboard',
-    description: 'Get the alt text leaderboard',
-    options: [
-      {
-        name: 'page',
-        description: 'Page of the leaderboard to get',
-        required: false,
-        type: 10 // NUMBER
-      }
-    ]
-  });
+  commands.create(
+    new SlashCommandBuilder()
+      .setName('rank')
+      .setDescription('Get ranks on the alt text leaderboards')
+      .addUserOption(option => option
+        .setName('user')
+        .setDescription("User to get the rank of"))
+  );
 
-  commands.create({
-    name: 'loserboard',
-    description: 'Get the alt text loserboard',
-    options: [
-      {
-        name: 'page',
-        description: 'Page of the loserboard to get',
-        required: false,
-        type: 10 // NUMBER
-      }
-    ]
-  });
+  commands.create(
+    new SlashCommandBuilder()
+      .setName('leaderboard')
+      .setDescription('Get the alt text leaderboard')
+      .addNumberOption(option => option
+        .setName('page')
+        .setDescription("Page of the leaderboard to get"))
+  );
 
-  commands.create({
-    name: 'delete',
-    description: 'Delete a Raiha message',
-    options: [
-      {
-        name: 'msgid',
-        description: 'Message ID of the message to delete',
-        required: true,
-        type: 3 // STRING
-      }
-    ]
-  });
+  commands.create(
+    new SlashCommandBuilder()
+      .setName('loserboard')
+      .setDescription('Get the alt text loserboard')
+      .addNumberOption(option => option
+        .setName('page')
+        .setDescription("Page of the loserboard to get"))
+  );
+
+  commands.create(
+    new SlashCommandBuilder()
+      .setName('delete')
+      .setDescription('Delete a Raiha message')
+      .addStringOption(option => option
+        .setName('msgid')
+        .setDescription("Message ID of the message to delete")
+        .setRequired(true))
+  );
 
   commands.create({
     name: 'help',
@@ -71,35 +57,28 @@ export default function () {
     description: 'About Raiha'
   });
 
-  commands.create({
-    name: 'set',
-    description: 'Override leaderboard values (Mod Only)',
-    options: [
-      {
-        name: 'user',
-        description: 'User to set the value of',
-        required: true,
-        type: 6 // USER
-      },
-      {
-        name: 'board',
-        description: 'Board to set',
-        required: true,
-        type: 3, // STRING
-        choices: [
+  commands.create(
+    new SlashCommandBuilder()
+      .setName('set')
+      .setDescription("Override leaderboard values (Mod Only)")
+      .addUserOption(option => option
+        .setName('user')
+        .setDescription("User to set the value of")
+        .setRequired(true))
+      .addStringOption(option => option
+        .setName('board')
+        .setDescription("Board to set")
+        .setRequired(true)
+        .addChoices(
           { name: 'Native', value: 'Native' },
           { name: 'Raiha', value: 'Raiha' },
           { name: 'Loserboard', value: 'Loserboard' }
-        ]
-      },
-      {
-        name: 'value',
-        description: 'Value to set the board to',
-        required: true,
-        type: 10 // NUMBER
-      }
-    ]
-  });
+        ))
+      .addNumberOption(option => option
+        .setName('value')
+        .setDescription("Value to set the board to")
+        .setRequired(true))
+  );
 
   console.log('Raiha is ready to go!');
 };
