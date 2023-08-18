@@ -8,9 +8,9 @@ export default async function (interaction: ChatInputCommandInteraction, { optio
 
     const embedContents = await postLeaderboard();
     const page = Math.min(Math.max(1, options.getNumber('page')?.valueOf() ?? 1), embedContents.length);
-    const embeds = embedContents.map(({ text, footer }) =>
+    const embeds = embedContents.map(({ text, footer }, num) =>
         new EmbedBuilder()
-            .setTitle(`Alt Text Leaderboards (Page ${page}/${embedContents.length})`)
+            .setTitle(`Alt Text Leaderboards (Page ${num + 1}/${embedContents.length})`)
             .setDescription(text)
             .setFooter({ text: footer })
             .setColor(0xd797ff));

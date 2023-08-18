@@ -59,9 +59,10 @@ export async function getAIDescription(imageUrl: string, doCaption = true, doOCR
 }
 
 type ReactionType = 'ERR_MISSING_ALT_TEXT' | 'ERR_MISMATCH' | 'ERR_NOT_REPLY';
-export async function react(message: Message<boolean>, reaction: ReactionType) {
-  const config = leaderboards.Configuration;
-  const { errorNoAlt, errorMismatch, errorNotReply } = config[message.guild!.id];
+export async function react(message: Message<true>, reaction: ReactionType) {
+  const config = leaderboards.Configuration[message.guild.id];
+  if (!config) return;
+  const { errorNoAlt, errorMismatch, errorNotReply } = config;
   try {
     switch (reaction) {
       case 'ERR_MISSING_ALT_TEXT':

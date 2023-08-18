@@ -79,3 +79,6 @@ CLIENT.on('ready', ready);
 CLIENT.on('interactionCreate', interaction => interactionCreate(interaction));
 CLIENT.on('messageCreate', message => messageCreate(message));
 CLIENT.login(process.env.TOKEN);
+
+process.on('uncaughtException', err => console.log(err))
+process.on('unhandledRejection', err => console.log(err))

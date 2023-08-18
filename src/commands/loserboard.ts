@@ -9,9 +9,9 @@ export default async function (interaction: ChatInputCommandInteraction, { optio
 
     const embedContents = await postLoserboard();
     const page = Math.min(Math.max(1, options.getNumber('page')?.valueOf() ?? 1), embedContents.length);
-    const embeds = embedContents.map(content =>
+    const embeds = embedContents.map((content, num) =>
         new EmbedBuilder()
-            .setTitle(`Loserboard (Page ${page}/${embedContents.length})`)
+            .setTitle(`Loserboard (Page ${num + 1}/${embedContents.length})`)
             .setDescription(content)
             .setColor(0xd797ff));
 
