@@ -56,7 +56,7 @@ async function handleNoAttachments(message: Message<true>) {
   const original = await message.channel.messages.fetch(message.reference.messageId!);
   if (!original) return;
   const successfulPost = await postAltText(message, original, alts, content);
-  if (successfulPost && message.author.id == original.author.id) {
+  if (!successfulPost && message.author.id == original.author.id) {
     await db.ref(`/Leaderboard/Loserboard/`)
       .child(message.author.id)
       .set(ServerValue.increment(-1));
