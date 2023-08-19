@@ -25,7 +25,12 @@ export default async function (interaction: ChatInputCommandInteraction, { optio
 
 export async function startCollections(interaction: ChatInputCommandInteraction, reply: Message, page: number, embeds: EmbedBuilder[]) {
     if (embeds.length == 1) return;
-    await interaction.editReply({ components: [getButtons(page, embeds.length)] });
+    try {
+        await interaction.editReply({ components: [getButtons(page, embeds.length)] });
+    } catch {
+        console.error("Could not add page buttons.")
+        return;
+    }
 
     const pageCollector = interaction.channel!.createMessageComponentCollector({
         filter: ({ user, message }) => user.id == interaction.user.id && message.id == reply.id,
@@ -37,11 +42,19 @@ export async function startCollections(interaction: ChatInputCommandInteraction,
         const newPage = collection.customId == "previous" ? page - 1 : page + 1;
         if (!embeds[newPage - 1]) return;
         page = newPage;
-        collection.update({ embeds: [embeds[page - 1]], components: [getButtons(page, embeds.length)] });
+        try {
+            collection.update({ embeds: [embeds[page - 1]], components: [getButtons(page, embeds.length)] });
+        } catch {
+            console.error("Could not update leaderboard.")
+        }
     })
 
     pageCollector.on('end', async () => {
-        await interaction.editReply({ components: [] })
+        try {
+            await interaction.editReply({ components: [] })
+        } catch {
+            console.error("Embed buttons could not be removed.")
+        }
     })
 }
 

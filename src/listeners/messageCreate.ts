@@ -1,4 +1,4 @@
-import { EmbedBuilder, Message } from "discord.js";
+import { Message } from "discord.js";
 import { ServerValue } from 'firebase-admin/database';
 import { getAllowedMentions, react, sendError } from '../misc/misc';
 import { isMissingAltText, hasImages, applyAltText, checkLoserboard, getAltsAndContent, verifyAltTexts } from './messageUtil';

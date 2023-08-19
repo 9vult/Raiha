@@ -11,7 +11,7 @@ import { DataSnapshot } from '@firebase/database-types';
 
 require('dotenv').config();
 const admin = require('firebase-admin');
-const firebase = require('../credentials.json');
+const firebase = require('../firebase.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(firebase),

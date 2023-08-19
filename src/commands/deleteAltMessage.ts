@@ -36,8 +36,8 @@ export default async function (interaction: ChatInputCommandInteraction, { user,
             // Reached the top-level message
             if (refVal['OP'] == user.id) {
                 isOP = true;
-                break;
-            } else break;
+            }
+            break;
         } else {
             // Still must traverse upwards
             currentMessageID = refVal['Parent'];

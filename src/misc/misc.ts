@@ -1,5 +1,6 @@
 import { EmbedBuilder, Message, MessageMentionOptions, MessageMentions, TextChannel } from "discord.js";
 import { CLIENT, leaderboards } from "../raiha";
+const fetch = require('node-fetch');
 
 // FUNCTIONS
 
@@ -8,7 +9,7 @@ import { CLIENT, leaderboards } from "../raiha";
  * @param MentionProps
  * @return MessageMentionOptions
  */
-export function getAllowedMentions(mentions?: MessageMentions<boolean>): MessageMentionOptions {
+export function getAllowedMentions(mentions?: MessageMentions): MessageMentionOptions {
   return {
     parse: [],
     users: Array.from(mentions?.users.keys() ?? []),
@@ -60,8 +61,7 @@ export async function getAIDescription(imageUrl: string, doCaption = true, doOCR
 
 type ReactionType = 'ERR_MISSING_ALT_TEXT' | 'ERR_MISMATCH' | 'ERR_NOT_REPLY';
 export async function react(message: Message<true>, reaction: ReactionType) {
-  const config = leaderboards.Configuration[message.guild.id];
-  if (!config) return;
+  const config = leaderboards.Configuration[message.guild.id] ?? {};
   const { errorNoAlt, errorMismatch, errorNotReply } = config;
   try {
     switch (reaction) {
@@ -106,5 +106,5 @@ export async function sendError(guildId: string, errorTitle: string, errorBody: 
 }
 
 // STRINGS
-export const helpText = `**Adding Alt Text Natively**\n1. Upload and attach an image\n2. Click on the pencil next to the trash can to modify the attachment\n3. Add a description (alt text) where indicated\n\n**Adding Alt Text With Raiha**\nWhen posting a new message:\n1. Upload and attach an image\n2. Add a Raiha trigger to the end of the message\n\nAdding to an existing message:\n1. **Reply** to the original message with a Raiha trigger\n2. Raiha will repost the original message with alt text\n\n**Raiha Trigger Commands**\nRaiha recognizes the following triggers as the start of an alt text command:\n\`r!\`, \`alt:\`, and \`id:\`\n\n ・ The simplest command is for one image: \`r! A black cat sleeping\`.\n ・ If there are multiple images, split each description with a pipe (\`|\`):\n\`r! image 1 | image 2 | ...\`\n\n**Raiha AI Assistance**\nRaiha also supports some AI-helped functionality:\n ・ Use \`r! $$\` ro request an AI-getd image description.\n ・ Use \`r! $$ocr\` to request an image description _and_ text recognition. Use this for text-heavy images like social media posts.\n ・ \`$$ocr\` can be used in conjunction with a user-specified description for more clarity: \`r! Email from my professor $$ocr\`\n ・ These features are per-image, so if there are multiple images you will need to specify for all of them, or mix and match:\n\`r! $$ | $$ocr | Johnny | text with Johnny $$ocr\`\n\n**Viewing Alt Text**\nTo view, enable "with image descriptions" in Settings->Text and Media.`;
+export const helpText = `**Adding Alt Text Natively**\n1. Upload and attach an image\n2. Click on the pencil next to the trash can to modify the attachment\n3. Add a description (alt text) where indicated\n\n**Adding Alt Text With Raiha**\nWhen posting a new message:\n1. Upload and attach an image\n2. Add a Raiha trigger to the end of the message\n\nAdding to an existing message:\n1. **Reply** to the original message with a Raiha trigger\n2. Raiha will repost the original message with alt text\n\n**Raiha Trigger Commands**\nRaiha recognizes the following triggers as the start of an alt text command:\n\`r!\`, \`alt:\`, and \`id:\`\n\n ・ The simplest command is for one image: \`r! A black cat sleeping\`.\n ・ If there are multiple images, split each description with a pipe (\`|\`):\n\`r! image 1 | image 2 | ...\`\n\n**Raiha AI Assistance**\nRaiha also supports some AI-helped functionality:\n ・ Use \`r! $$\` to request an AI-generated image description.\n ・ Use \`r! $$ocr\` to request an image description _and_ text recognition. Use this for text-heavy images like social media posts.\n ・ \`$$ocr\` can be used in conjunction with a user-specified description for more clarity: \`r! Email from my professor $$ocr\`\n ・ These features are per-image, so if there are multiple images you will need to specify for all of them, or mix and match:\n\`r! $$ | $$ocr | Johnny | text with Johnny $$ocr\`\n\n**Viewing Alt Text**\nTo view, enable "with image descriptions" in Settings->Text and Media.`;
 export const whyText = `Alternative Text (alt text) is a text description of an image that is generally read by a screen reader to allow the visually impared to understand the context of an image. It may also benefit people with processing disorders or impaired mental processing capabilities.\nAdditionally, alt text is beneficial even outside the realm of accessibility—on Discord, alt text is indexed and searchable, allowing you to search for images quickly and easily!`;
