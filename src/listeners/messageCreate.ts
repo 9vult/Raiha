@@ -54,7 +54,7 @@ async function handleNoAttachments(message: Message<true>) {
   // ----- THIS IS A REPLY TRIGGER (Scenario 2) -----
   // Get the parent (OP)
   const original = await message.channel.messages.fetch(message.reference.messageId!);
-  if (!original) return;
+  if (!original || !isMissingAltText(original)) return;
   const successfulPost = await postAltText(message, original, alts, content);
   if (successfulPost && message.author.id == original.author.id) {
     await db.ref(`/Leaderboard/Loserboard/`)

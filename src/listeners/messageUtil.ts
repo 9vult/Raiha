@@ -6,7 +6,7 @@ import { CLIENT, db, leaderboards } from '../raiha';
  * Check if any of the attachments on the message are missing alt text 
  * @param message Incoming message to check
  */
-export function isMissingAltText(message: Message<boolean>): boolean {
+export function isMissingAltText(message: Message): boolean {
   return Array.from(message.attachments.values()).some(attachment =>
     attachment.contentType?.startsWith('image') &&
     !attachment.description?.trim()
@@ -17,7 +17,7 @@ export function isMissingAltText(message: Message<boolean>): boolean {
  * Checks if any of the attachments are images
  * @param message Incoming message to check
  */
-export function hasImages(message: Message<boolean>): boolean {
+export function hasImages(message: Message): boolean {
   return Array.from(message.attachments.values()).some(attachment =>
     attachment.contentType?.startsWith('image')
   )
@@ -60,7 +60,7 @@ export function getAltsAndContent({ content }: Message): { alts: string[], conte
  * @param altTexts Alt texts to apply
  * @returns Fixed attachments
  */
-export async function applyAltText(message: Message<boolean>, altTexts: string[]) {
+export async function applyAltText(message: Message, altTexts: string[]) {
   const fixedFiles = Array.from(message.attachments.values())
     .map(async (attachment, index) => {
       if (altTexts[index].trim() == "$$") {
