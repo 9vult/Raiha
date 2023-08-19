@@ -42,19 +42,13 @@ export async function startCollections(interaction: ChatInputCommandInteraction,
         const newPage = collection.customId == "previous" ? page - 1 : page + 1;
         if (!embeds[newPage - 1]) return;
         page = newPage;
-        try {
-            collection.update({ embeds: [embeds[page - 1]], components: [getButtons(page, embeds.length)] });
-        } catch {
-            console.error("Could not update leaderboard.")
-        }
+        collection.update({ embeds: [embeds[page - 1]], components: [getButtons(page, embeds.length)] })
+            .catch(() => console.error("Could not update leaderboard."));
     })
 
     pageCollector.on('end', async () => {
-        try {
-            await interaction.editReply({ components: [] })
-        } catch {
-            console.error("Embed buttons could not be removed.")
-        }
+        await interaction.editReply({ components: [] })
+            .catch(() => console.error("Embed buttons could not be removed."));
     })
 }
 

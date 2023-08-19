@@ -8,17 +8,15 @@ export default async function (interaction: ChatInputCommandInteraction, { user,
 
     const messageID = options.getString('msgid')!.valueOf();
 
-    let message: Message<boolean>;
-    try {
-        message = await interaction.channel!.messages!.fetch(`${messageID}`);
-    } catch {
-        const embed = new EmbedBuilder()
-            .setTitle(`Raiha Message Delete`)
-            .setDescription(`Could not find the message with ID ${messageID}.`)
-            .setColor(0xd797ff);
-        await interaction.editReply({ embeds: [embed], allowedMentions: getAllowedMentions() });
-        return;
-    }
+    const message = await interaction.channel!.messages!.fetch(`${messageID}`)
+        .catch(async () => {
+            const embed = new EmbedBuilder()
+                .setTitle(`Raiha Message Delete`)
+                .setDescription(`Could not find the message with ID ${messageID}.`)
+                .setColor(0xd797ff);
+            await interaction.editReply({ embeds: [embed], allowedMentions: getAllowedMentions() });
+        });
+    if (!message) return;
 
     // sec -> im not touching this idk what it does
     let isOP = false;

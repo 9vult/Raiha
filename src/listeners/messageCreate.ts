@@ -1,51 +1,45 @@
 import { Message } from "discord.js";
 import { ServerValue } from 'firebase-admin/database';
 import { getAllowedMentions, react, sendError } from '../misc/misc';
-import { isMissingAltText, hasImages, applyAltText, checkLoserboard, getAltsAndContent, verifyAltTexts } from './messageUtil';
+import { isMissingAltText, applyAltText, checkLoserboard, getAltsAndContent, verifyAltTexts, getImages } from './messageUtil';
 import { db } from '../raiha';
 
 export default async function (message: Message) {
   if (message.author.bot || !message.inGuild()) return;
-  if (message.attachments.size) handleAttachments(message);
-  else handleNoAttachments(message);
-};
-
-async function handleAttachments(message: Message<true>) {
-  const noAltText = isMissingAltText(message);
-
-  // The message HAS attachments
-  if (noAltText) {
-    await react(message, 'ERR_MISSING_ALT_TEXT');
-  } else if (hasImages(message)) {
-    await db.ref(`/Leaderboard/Native/`)
-      .child(message.author.id)
-      .set(ServerValue.increment(1));
-  }
-
-  const { alts, content } = getAltsAndContent(message);
-  if (!alts.length) {
-    // The user posted an image without alt text and did not call the bot :(
-    if (noAltText) {
-      await db.ref(`/Leaderboard/Loserboard/`)
-        .child(message.author.id)
-        .set(ServerValue.increment(1));
-      checkLoserboard(message.author.id, message.guild.id);
-    }
-    return;
-  }
-  const successfulPost = await postAltText(message, message, alts, content);
-  if (!successfulPost) {
+  if (message.attachments.size) {
+    if (await handleAttachments(message)) return;
     await db.ref(`/Leaderboard/Loserboard/`)
       .child(message.author.id)
       .set(ServerValue.increment(1));
     checkLoserboard(message.author.id, message.guild.id);
   }
+  else handleNoAttachments(message);
+};
+
+async function handleAttachments(message: Message<true>): Promise<boolean> {
+  const noAltText = isMissingAltText(message);
+  if (noAltText) {
+    await react(message, 'ERR_MISSING_ALT_TEXT');
+    return false;
+  }
+  // The message HAS attachments with alt text
+  if (getImages(message).length) {
+    await db.ref(`/Leaderboard/Native/`)
+      .child(message.author.id)
+      .set(ServerValue.increment(1));
+    return true;
+  }
+
+  const { alts, content } = getAltsAndContent(message);
+  // The user posted an image without alt text and did not call the bot :(
+  if (!alts.length) return false;
+  return await postAltText(message, message, alts, content);
 }
 
 async function handleNoAttachments(message: Message<true>) {
   // This message DOES NOT have attachments
-  const { alts, content } = getAltsAndContent(message);
-  if (content) return; // Reply trigger must be at start of message (if it exists)
+  const { alts, content: replyContent } = getAltsAndContent(message);
+  if (replyContent) return; // Reply trigger must be at start of message (if it exists)
   if (!message.reference) {
     // Trigger message is not a reply
     await react(message, 'ERR_NOT_REPLY');
@@ -53,8 +47,9 @@ async function handleNoAttachments(message: Message<true>) {
   }
   // ----- THIS IS A REPLY TRIGGER (Scenario 2) -----
   // Get the parent (OP)
-  const original = await message.channel.messages.fetch(message.reference.messageId!);
+  const original = await message.channel.messages.fetch(message.reference.messageId!)
   if (!original || !isMissingAltText(original)) return;
+  const { content } = getAltsAndContent(original);
   const successfulPost = await postAltText(message, original, alts, content);
   if (successfulPost && message.author.id == original.author.id) {
     await db.ref(`/Leaderboard/Loserboard/`)
@@ -80,7 +75,7 @@ async function postAltText(message: Message<true>, original: Message<true>, altT
 
   // Send the message by its appropriate response
   const sentMessage = original.reference ?
-    await (await original.channel.messages.fetch(original.reference.messageId!)).reply(messageContent) :
+    await original.reply(messageContent) :
     await original.channel.send(messageContent);
 
   try {

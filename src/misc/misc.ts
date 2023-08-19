@@ -1,6 +1,6 @@
 import { EmbedBuilder, Message, MessageMentionOptions, MessageMentions, TextChannel } from "discord.js";
 import { CLIENT, leaderboards } from "../raiha";
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
 
 // FUNCTIONS
 
@@ -95,7 +95,7 @@ export async function react(message: Message<true>, reaction: ReactionType) {
 }
 
 export async function sendError(guildId: string, errorTitle: string, errorBody: string, authorId: string | number, url: string) {
-  const channel = CLIENT.channels.cache.get(leaderboards.Configuration[guildId].errorChannel ?? "") as TextChannel;
+  const channel = CLIENT.channels.cache.get(leaderboards.Configuration[guildId]?.errorChannel ?? "") as TextChannel;
   if (!channel) return;
 
   const embed = new EmbedBuilder()
