@@ -7,19 +7,23 @@ import set from './commands/set';
 import showEmbed from './commands/showEmbed';
 
 export default {
-    rank,
-    leaderboard,
-    loserboard,
-    delete: deleteAltMessage,
-    set,
-    help: showEmbed,
-    why: showEmbed,
-    about: showEmbed
-} as { [key: string]: (interaction: ChatInputCommandInteraction, options?: OptionalCommandArguments) => void }
+  rank,
+  leaderboard,
+  loserboard,
+  delete: deleteAltMessage,
+  set,
+  help: showEmbed,
+  why: showEmbed,
+  about: showEmbed
+} satisfies CommandModule as CommandModule;
+
+interface CommandModule {
+  [key: string]: (interaction: ChatInputCommandInteraction, options: OptionalCommandArguments) => void
+}
 
 export interface OptionalCommandArguments {
-    commandName: string;
-    options: Omit<CommandInteractionOptionResolver, 'getMessage' | 'getFocused'>;
-    user: User;
-    member: GuildMember
+  commandName: string;
+  options: Omit<CommandInteractionOptionResolver, 'getMessage' | 'getFocused'>;
+  user: User;
+  member: GuildMember
 }
