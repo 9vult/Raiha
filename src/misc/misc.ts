@@ -1,6 +1,6 @@
 import { EmbedBuilder, Message, MessageMentionOptions, MessageMentions, TextChannel } from "discord.js";
 import { CLIENT, leaderboards } from "../raiha";
-// const fetch = require('node-fetch');
+const fetch = require('node-fetch');
 
 // FUNCTIONS
 
