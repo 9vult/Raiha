@@ -15,7 +15,7 @@ export default {
   help: showEmbed,
   why: showEmbed,
   about: showEmbed
-} satisfies CommandModule as CommandModule;
+} as CommandModule;
 
 interface CommandModule {
   [key: string]: (interaction: ChatInputCommandInteraction, options: OptionalCommandArguments) => void

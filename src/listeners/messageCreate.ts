@@ -14,7 +14,7 @@ export default async function (message: Message) {
     checkLoserboard(message.author.id, message.guild.id);
   }
   else handleNoAttachments(message);
-};
+}
 
 async function handleAttachments(message: Message<true>): Promise<boolean> {
   const noAltText = isMissingAltText(message);
