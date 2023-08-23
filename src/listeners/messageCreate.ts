@@ -2,7 +2,12 @@ import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from
 import { ServerValue } from 'firebase-admin/database';
 import type { Database } from '@firebase/database-types';
 
-import { generateAIDescription, generateAllowedMentions, getMentions, react, sendError } from '../misc/misc';
+import { generateAIDescription } from "../actions/generateAIDescription.action";
+import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
+import { getMentions } from "../actions/getMentions.action";
+import { react } from "../actions/react.action";
+import { sendError } from "../actions/sendError.action";
+import { informNewUser } from "../actions/informNewUser.action";
 
 export default (client: Client, db: Database, leaderboards: {[key:string]:any}): void => {
   client.on('messageCreate', async (message) => {
@@ -21,6 +26,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       // The message HAS attachments
       if (isMissingAltText(message)) {
         await react(message, config, 'ERR_MISSING_ALT_TEXT');
+        await informNewUser(message, leaderboards);
       } else {
         hasGoodAttachments = true;
         if (!areNotImages(message)) {

@@ -2,7 +2,8 @@ import { Client, EmbedBuilder, Message, MessageMentionOptions, GuildMemberRoleMa
 import type { Database } from '@firebase/database-types';
 
 import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
-import { generateAllowedMentions, helpText, whyText } from '../misc/misc';
+import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
+import { helpText, whyText } from '../misc/misc';
 import { VERSION } from '../raiha';
 
 export default (client: Client, db: Database, leaderboards: {[key:string]:any}): void => {
