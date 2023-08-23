@@ -26,7 +26,6 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       // The message HAS attachments
       if (isMissingAltText(message)) {
         await react(message, config, 'ERR_MISSING_ALT_TEXT');
-        await informNewUser(message, leaderboards);
       } else {
         hasGoodAttachments = true;
         if (!areNotImages(message)) {
@@ -107,6 +106,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
         if (!hasGoodAttachments) {
           const ref2 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
           ref2.set(ServerValue.increment(1));
+          await informNewUser(message, leaderboards);
         } 
       }
     } else {
