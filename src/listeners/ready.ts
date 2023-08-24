@@ -83,6 +83,11 @@ export default (client: Client): void => {
     });
 
     commands?.create({
+      name: 'altrules',
+      description: 'Alt text rules'
+    });
+
+    commands?.create({
       name: 'set',
       description: 'Override leaderboard values (Mod Only)',
       options: [

@@ -3,5 +3,5 @@ export const helpText = `**Adding Alt Text Natively**\n1. Upload and attach an i
 
 export const whyText = `Alternative Text (alt text) is a text description of an image that is generally read by a screen reader to allow the visually impared to understand the context of an image. It may also benefit people with processing disorders or impaired mental processing capabilities.\nAdditionally, alt text is beneficial even outside the realm of accessibility—on Discord, alt text is indexed and searchable, allowing you to search for images quickly and easily!`;
 
-export const hintText = "It looks like you might be new to adding alt text with Raiha.\nReply to your image with `r! <image description here>` to easily add alt text.\nYou can also add the command to the end of a new upload.\nFor more details, `/help`. For why, `/why`.\n\n_This message will self-destruct in 45 seconds._";
+export const hintText = "It looks like you might be new to adding alt text with Raiha.\nReply to your image with `r! <image description here>` to easily add alt text.\nYou can also add the command to the end of a new upload.\nFor more details, `/help`. For why, `/why`.\nTo see this server's alt text rules, `/altrules`.\n\n_This message will self-destruct in 45 seconds._";
 

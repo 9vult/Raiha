@@ -172,6 +172,20 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       return;
     }
 
+    if (commandName === 'altrules') {
+      const config: {[key:string]:any} = leaderboards['Configuration'];
+      let serverValue = config[interaction.guild!.id]['altrules'];
+      serverValue = serverValue.replaceAll('\\n', '\n');
+      if (serverValue == 'default') serverValue = "This server has not specified any alt text rules.";
+      const embed = new EmbedBuilder()
+        .setTitle(`Alt Text Rules for '${interaction.guild!.name}'`)
+        .setDescription(serverValue)
+        .setColor(0xd797ff);
+
+      await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
+      return;
+    }
+
     if (commandName === 'about') {
       const embed = new EmbedBuilder()
         .setTitle(`Raiha Accessibility Bot`)
