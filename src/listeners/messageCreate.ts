@@ -88,7 +88,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
         let msgData = {
           Alt: altAuthor,
           OP: opAuthor,
-	  Parent: sentMsg.id,
+	        Parent: sentMsg.id,
           Request: message.content.substring(altStartIndex[0])
         };
         const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`).child(sentMsg.id);
