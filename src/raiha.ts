@@ -46,7 +46,7 @@ db.ref('/Leaderboard/Raiha').on("value", function(data: {[key:string]:any}) {
   leaderboards['Raiha'] = data.val();
 });
 db.ref('/Leaderboard/Loserboard').on("value", function(data: {[key:string]:any}) {
-  loserboardNotify(data.val(), leaderboards['Loserboard'], leaderboards['Configuration']);
+  loserboardNotify(data.val(), leaderboards);
   leaderboards['Loserboard'] = data.val();
 });
 db.ref('/Statistics').on("value", function(data: {[key:string]:any}) {

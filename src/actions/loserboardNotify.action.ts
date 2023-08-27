@@ -1,8 +1,11 @@
 import { EmbedBuilder, TextChannel } from "discord.js";
 import { CLIENT } from "../raiha";
 
-export const loserboardNotify = async (incoming: { [key: string]: any }, current: { [key: string]: any }, config: {[key:string]:any}) => {
-  if (!current || !incoming) return;
+export const loserboardNotify = async (incoming: { [key: string]: any }, currentLeaderboards: { [key: string]: any }) => {
+  if (!currentLeaderboards || !incoming || !currentLeaderboards['Loserboard']) return;
+  let current = currentLeaderboards['Loserboard'];
+  let config = currentLeaderboards['Configuration'];
+
   for (let server of Object.keys(current)) {
     let incomingServer = incoming[server];
     if (!incomingServer) continue;
@@ -17,10 +20,16 @@ export const loserboardNotify = async (incoming: { [key: string]: any }, current
       if (!incomingUser) continue;
       if (incomingUser <= current[server][user]) continue;
 
-      if (incomingUser != 0 && (incomingUser % serverMuteThreshold == 0))
-        muteNotify(serverModChannel, user, incomingUser);
-      if (serverEnableWarnings && incomingUser != 0 && ((incomingUser + 5) % serverMuteThreshold == 0))
-        warnNotify(serverModChannel, user, incomingUser);
+      if (incomingUser != 0 && (incomingUser % serverMuteThreshold == 0)) {
+        await new Promise(r => setTimeout(r, 60_000));
+        if (incomingUser <= currentLeaderboards['Loserboard'][server][user]) 
+          muteNotify(serverModChannel, user, incomingUser);
+      }
+      if (serverEnableWarnings && incomingUser != 0 && ((incomingUser + 5) % serverMuteThreshold == 0)) {
+        await new Promise(r => setTimeout(r, 60_000));
+        if (incomingUser <= currentLeaderboards['Loserboard'][server][user]) 
+          warnNotify(serverModChannel, user, incomingUser);
+      }
     }
   }
 }
