@@ -44,7 +44,8 @@ Finally, in the firebase database, set the server configuration at `/Configurati
   loserboard: boolean,
   modChannel: string (channelID),
   modRole: string (roleName),
-  muteThreshold: number (0 to disable)
+  muteThreshold: number (0 to disable),
+  specialWarnThresholds: number[] (ignores enableWarnings value)
 }
 ```
 

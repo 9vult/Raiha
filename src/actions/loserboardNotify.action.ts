@@ -13,6 +13,7 @@ export const loserboardNotify = async (incoming: { [key: string]: any }, current
     let serverMuteThreshold = config[server]['muteThreshold'];
     let serverEnableWarnings: boolean = config[server]['enableWarnings'];
     let serverModChannel = config[server]['modChannel'];
+    let serverSpecialWarnThresholds: number[] = config[server]['specialWarnThresholds'];
     if (serverMuteThreshold <= 0) continue;
 
     for (let user of Object.keys(current[server])) {
@@ -26,6 +27,11 @@ export const loserboardNotify = async (incoming: { [key: string]: any }, current
           muteNotify(serverModChannel, user, incomingUser);
       }
       if (serverEnableWarnings && incomingUser != 0 && ((incomingUser + 5) % serverMuteThreshold == 0)) {
+        await new Promise(r => setTimeout(r, 60_000));
+        if (incomingUser <= currentLeaderboards['Loserboard'][server][user]) 
+          warnNotify(serverModChannel, user, incomingUser);
+      }
+      if (serverSpecialWarnThresholds && serverSpecialWarnThresholds.includes(incomingUser)) { // Not bound to serverEnableWarnings
         await new Promise(r => setTimeout(r, 60_000));
         if (incomingUser <= currentLeaderboards['Loserboard'][server][user]) 
           warnNotify(serverModChannel, user, incomingUser);
