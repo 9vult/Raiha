@@ -2,7 +2,12 @@ import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from
 import { ServerValue } from 'firebase-admin/database';
 import type { Database } from '@firebase/database-types';
 
-import { generateAIDescription, generateAllowedMentions, getMentions, react, sendError } from '../misc/misc';
+import { generateAIDescription } from "../actions/generateAIDescription.action";
+import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
+import { getMentions } from "../actions/getMentions.action";
+import { react } from "../actions/react.action";
+import { sendError } from "../actions/sendError.action";
+import { informNewUser } from "../actions/informNewUser.action";
 
 export default (client: Client, db: Database, leaderboards: {[key:string]:any}): void => {
   client.on('messageCreate', async (message) => {
@@ -24,7 +29,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       } else {
         hasGoodAttachments = true;
         if (!areNotImages(message)) {
-          const ref2 = db.ref(`/Leaderboard/Native/`).child(message.author.id);
+          const ref2 = db.ref(`/Leaderboard/Native/${message.guild!.id}`).child(message.author.id);
           ref2.set(ServerValue.increment(1));
         }
       }
@@ -36,7 +41,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
         for (let alt of altTexts) {
           if (alt.trim().length === 0) {
             await react(message, config, 'ERR_MISMATCH');
-            const ref2 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
+            const ref2 = db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`).child(message.author.id);
             ref2.set(ServerValue.increment(1));
             return;
           }
@@ -83,12 +88,12 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
         let msgData = {
           Alt: altAuthor,
           OP: opAuthor,
-	  Parent: sentMsg.id,
+          Parent: sentMsg.id,
           Request: message.content.substring(altStartIndex[0])
         };
         const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`).child(sentMsg.id);
         ref.set(msgData);
-        const ref2 = db.ref(`/Leaderboard/Raiha/`).child(message.author.id);
+        const ref2 = db.ref(`/Leaderboard/Raiha/${message.guild!.id}`).child(message.author.id);
         ref2.set(ServerValue.increment(1));
 
         // Statistics
@@ -99,8 +104,9 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       } else {
         // The user posted an image without alt text and did not call the bot :(
         if (!hasGoodAttachments) {
-          const ref2 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
+          const ref2 = db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`).child(message.author.id);
           ref2.set(ServerValue.increment(1));
+          await informNewUser(message, leaderboards);
         } 
       }
     } else {
@@ -141,19 +147,23 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       let allowedMentions = generateAllowedMentions(mentions);
       let sentMsg;
 
+      let repostContent;
+      if (op.author.id == message.author.id) repostContent = `_From <@${op.author.id}>${op.content != '' ? ':_\n\n' + op.content : '._'}`;
+      else repostContent = `_From <@${op.author.id}> with alt text by <@${message.author.id}>${op.content != '' ? ':_\n\n' + op.content : '._'}`;
+
       if (op.reference) {
         // OP is a reply (2a)
         let parent = await op.channel.messages.fetch(op.reference.messageId!);
         sentMsg = await parent.reply({
           files: fixedFiles,
-          content: `_From <@${op.author.id}> with alt text by <@${message.author.id}>${op.content != '' ? ':_\n\n' + op.content : '._'}`,
+          content: repostContent,
           allowedMentions: allowedMentions
         });
       } else {
         // This message is not a reply (1b)
         sentMsg = await message.channel.send({
           files: fixedFiles,
-          content: `_From <@${op.author.id}> with alt text by <@${message.author.id}>${op.content != '' ? ':_\n\n' + op.content : '._'}`,
+          content: repostContent,
           allowedMentions: allowedMentions
         });
       }
@@ -174,13 +184,13 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`).child(sentMsg.id);
       ref.set(msgData);
 
-      const ref2 = db.ref(`/Leaderboard/Raiha/`).child(message.author.id);
+      const ref2 = db.ref(`/Leaderboard/Raiha/${message.guild!.id}`).child(message.author.id);
       ref2.set(ServerValue.increment(1));
 
       if (message.author.id === op.author.id) {
-        if (leaderboards['Loserboard'][op.author.id] != 0) {
+        if (leaderboards['Loserboard'][message.guild!.id][op.author.id] != 0) {
           // Decrement from the loserboard if they call on themselves after the fact
-          const ref3 = db.ref(`/Leaderboard/Loserboard/`).child(message.author.id);
+          const ref3 = db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`).child(message.author.id);
           ref3.set(ServerValue.increment(-1));
         }
       }
