@@ -3,7 +3,7 @@ import { hintText } from "../misc/misc";
 
 export const informNewUser = async (originalMessage: Message<boolean>, leaderboards: {[key:string]:any}) => {
   let op = originalMessage.author.id;
-  if (leaderboards['Raiha'][op] == undefined || leaderboards['Raiha'][op] == 0) {
+  if (!leaderboards['Raiha'] || leaderboards['Raiha'][originalMessage.guild!.id][op] == undefined || leaderboards['Raiha'][originalMessage.guild!.id][op] == 0) {
     const embed = new EmbedBuilder()
       .setTitle("Alt Text Help")
       .setDescription(hintText)

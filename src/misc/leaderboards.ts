@@ -1,7 +1,7 @@
 import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
 
-export const postRank = async (id: string, lbs: {[key:string]:any}) => {
-  const sorted = leaderboardSorter(lbs);
+export const postRank = async (id: string, lbs: {[key:string]:any}, server: string) => {
+  const sorted = leaderboardSorter(lbs, server);
   const nativeS = sorted[0];
   const raihaS = sorted[1];
   const loserS = sorted[2];
@@ -44,8 +44,8 @@ export const postRank = async (id: string, lbs: {[key:string]:any}) => {
   return `Leaderboard ranking for <@${id}>:\n__**Native**__\n${iNative != -1 ? '#' + (iNative) : 'Unranked'} with a count of ${nativeVal}.\n__**Raiha**__\n${iRaiha != -1 ? '#' + iRaiha : 'Unranked'} with a count of ${raihaVal}.\n__**Loserboard**__\n${iLoser != -1 ? '#' + (iLoser) : 'Unranked'} with a count of ${loserVal}.`;
 }
 
-export const postLeaderboard = async (lbs: {[key:string]:any}, page: number) => {
-  const sorted = leaderboardSorter(lbs);
+export const postLeaderboard = async (lbs: {[key:string]:any}, server: string, page: number) => {
+  const sorted = leaderboardSorter(lbs, server);
   const nativeResult = generateText(sorted[0], 0, page, 5);
   const raihaResult = generateText(sorted[1], 0, page, 5);
   const result = {
@@ -55,8 +55,8 @@ export const postLeaderboard = async (lbs: {[key:string]:any}, page: number) => 
   return result;
 }
 
-export const postLoserboard = async (lbs: {[key:string]:any}, page: number) => {
-  const sorted = leaderboardSorter(lbs);
+export const postLoserboard = async (lbs: {[key:string]:any}, server: string, page: number) => {
+  const sorted = leaderboardSorter(lbs, server);
   const loserS = sorted[2];
   return generateText(loserS, 0, page, 10);
 }
@@ -75,20 +75,23 @@ const generateText = (board: any[], startIndex: number, page: number, pageLength
   return result;
 }
 
-export const leaderboardSorter = (lbs: {[key:string]:any}) => {
+export const leaderboardSorter = (lbs: {[key:string]:any}, server: string) => {
   let nativeS: any[] = [];
   let raihaS: any[] = [];
   let loserS: any[] = [];
 
-  for (var k in lbs['Native']) {
-    nativeS.push([k, lbs['Native'][k]]);
-  }
-  for (var k in lbs['Raiha']) {
-    raihaS.push([k, lbs['Raiha'][k]]);
-  }
-  for (var k in lbs['Loserboard']) {
-    loserS.push([k, lbs['Loserboard'][k]]);
-  }
+  if (lbs['Native'] && lbs['Native'][server])
+    for (var k in lbs['Native'][server]) {
+      nativeS.push([k, lbs['Native'][server][k]]);
+    }
+  if (lbs['Raiha'] && lbs['Raiha'][server])
+    for (var k in lbs['Raiha'][server]) {
+      raihaS.push([k, lbs['Raiha'][server][k]]);
+    }
+  if (lbs['Loserboard'] && lbs['Loserboard'][server])
+    for (var k in lbs['Loserboard'][server]) {
+      loserS.push([k, lbs['Loserboard'][server][k]]);
+    }
   nativeS.sort((a, b) => { return b[1] - a[1]; });
   raihaS.sort((a, b) => { return b[1] - a[1]; });
   loserS.sort((a, b) => { return b[1] - a[1]; });

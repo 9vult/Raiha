@@ -8,10 +8,10 @@ Raiha is an alt text helper bot that enables adding alt text to new or existing 
  - Raiha supports the following triggers: `r!`, `alt:`, `id:`
  - Raiha supports Azure Computer Vision. Use `r! $$` to generate an image description, and `r! $$ocr` to add OCR. These apply per-image, and can be mixed and matched: `r! my cat | $$ | my dog | $$ocr`
 
-
+****
 ### For moderation
 
-Raiha will post a message to a channel of your choosing to alert moderators when a user's Loserboard score surpasses a multiple of 25 (25, 50, 75, 100, etc), as well as reminding them if a user is 5 strikes from the threshold (20, 45, 70, 95, etc.).
+Raiha will post a message to a channel of your choosing to alert moderators when a user's Loserboard score surpasses a multiple of your choice, as well as reminding them if a user is 5 strikes from the threshold.
 
 
 ### Setup
@@ -28,6 +28,27 @@ Create a `.env` file in the project root and add the following to it:
  - `CV_ENDPOINT=[endpoint, with trailing /]`
 
 Then, place your `firebase.json` in the `/src/` folder.
+
+Finally, in the firebase database, set the server configuration at `/Configuration/[guildID]`:
+
+```typescript
+{
+  ai: boolean,
+  altrules: "default" | string,
+  enableWarnings: boolean,
+  errorChannel: string (channelID),
+  errorMismatch: "default" | string (emojiID),
+  errorNoAlt: "default" | string (emojiID),
+  errorNotReply: "default" | string (emojiID),
+  leaderboard: boolean,
+  loserboard: boolean,
+  modChannel: string (channelID),
+  modRole: string (roleName),
+  muteThreshold: number (0 to disable)
+}
+```
+
+_Some of these options are not yet implemented. Data types and names may change._
 
 ### Development
 

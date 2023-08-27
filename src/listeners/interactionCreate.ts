@@ -17,7 +17,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       const specifiedUser = options.getUser('user') || user;
       const id = specifiedUser.id;
 
-      const content = await postRank(id, leaderboards);
+      const content = await postRank(id, leaderboards, interaction.guild!.id);
       const embed = new EmbedBuilder()
         .setTitle(`Alt Text Leaderboards`)
         .setDescription(content)
@@ -33,7 +33,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       let page = 1;
       if (options.get('page')) page = parseInt(`${options.get('page')!.value!}`); // WHY DOESN'T getNumber() EXIST WHEN IT SAYS IT DOES
 
-      const content = await postLeaderboard(leaderboards, page);
+      const content = await postLeaderboard(leaderboards, interaction.guild!.id, page);
       const embed = new EmbedBuilder()
         .setTitle(`Alt Text Leaderboards${page !== 1 ? ' (Page ' + page + ')' : ''}`)
         .setDescription(content.text)
@@ -49,7 +49,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
 
       let page = 1;     
       if (options.get('page')) page = parseInt(`${options.get('page')!.value!}`); // WHY DOESN'T getNumber() EXIST WHEN IT SAYS IT DOES
-      const content = await postLoserboard(leaderboards, page);
+      const content = await postLoserboard(leaderboards, interaction.guild!.id, page);
       const embed = new EmbedBuilder()
         .setTitle(`Loserboard${page !== 1 ? ' (Page ' + page + ')' : ''}`)
         .setDescription(content)
@@ -131,7 +131,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
         let specifiedValue = options.get('value')!.value!;
         specifiedValue = (specifiedValue! < 0) ? 0 : specifiedValue;
 
-        const ref = db.ref(`/Leaderboard/${specifiedBoard!}`).child(specifiedUser!.id);
+        const ref = db.ref(`/Leaderboard/${specifiedBoard!}/${interaction.guild!.id}`).child(specifiedUser!.id);
         ref.set(specifiedValue!);
 
         const embed = new EmbedBuilder()
