@@ -117,6 +117,32 @@ export default (client: Client): void => {
       ]
     });
 
+    commands?.create({
+      name: 'usersetting',
+      description: 'Raiha user settings',
+      options: [
+        {
+          name: 'setting',
+          description: 'Setting to set',
+          required: true,
+          type: 3, // STRING
+          choices: [
+            { name: 'Reminder', value: 'Reminder' }
+          ]
+        },
+        {
+          name: 'option',
+          description: 'Setting value',
+          required: true,
+          type: 3, // STRING
+          choices: [
+            { name: 'YES', value: 'YES' },
+            { name: 'NO', value: 'NO' }
+          ]
+        },
+      ]
+    });
+
     console.log('Raiha is ready to go!');
   });
 };

@@ -8,6 +8,7 @@ import { getMentions } from "../actions/getMentions.action";
 import { react } from "../actions/react.action";
 import { sendError } from "../actions/sendError.action";
 import { informNewUser } from "../actions/informNewUser.action";
+import { remindUser } from "../actions/remindUser.action";
 
 export default (client: Client, db: Database, leaderboards: {[key:string]:any}): void => {
   client.on('messageCreate', async (message) => {
@@ -107,6 +108,7 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
           const ref2 = db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`).child(message.author.id);
           ref2.set(ServerValue.increment(1));
           await informNewUser(message, leaderboards);
+          await remindUser(message, leaderboards);
         } 
       }
     } else {

@@ -151,6 +151,31 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
       }
     }
 
+    if (commandName === 'usersetting') {
+      await interaction.deferReply();
+
+      const { options, user } = interaction;      
+      const specifiedSetting = options.get('setting')!.value!;
+      const specifiedOption = options.get('option')!.value! == 'YES' ? true : false;
+
+      switch (specifiedSetting) {
+        case 'Reminder':
+          const ref = db.ref(`/UserSettings/${user.id}`).child('Reminder');
+          ref.set(specifiedOption!);
+          break;
+        default:
+          break;
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle(`Raiha User Settings`)
+        .setDescription(`Set ${specifiedSetting} to ${specifiedOption}.`)
+        .setColor(0xd797ff);
+      await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
+      return;
+      
+    }
+
     if (commandName === 'help') {
       const embed = new EmbedBuilder()
         .setTitle(`Raiha Help`)

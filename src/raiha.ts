@@ -55,6 +55,9 @@ db.ref('/Statistics').on("value", function(data: {[key:string]:any}) {
 db.ref('/Configuration').on("value", function(data: {[key:string]:any}) {
   leaderboards['Configuration'] = data.val();
 });
+db.ref('/UserSettings').on("value", function(data: {[key:string]:any}) {
+  leaderboards['UserSettings'] = data.val();
+});
 
 // Set up listeners
 ready(client);

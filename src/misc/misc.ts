@@ -5,3 +5,5 @@ export const whyText = `Alternative Text (alt text) is a text description of an 
 
 export const hintText = "It looks like you might be new to adding alt text with Raiha.\nReply to your image with `r! <image description here>` to easily add alt text.\nYou can also add the command to the end of a new upload.\nFor more details, `/help`. For why, `/why`.\n**To see this server's alt text rules, `/altrules`.**\n\n_This message will self-destruct in 60 seconds._";
 
+export const reminderText = "Hi, you asked me to remind you on Raiha usage—Here's a TL;DR:\n- Reply to your message with `r! <image description>` to add alt text.\n- Use the pipe character `|` for multiple images.\n- Use `$$` for AI image recognition, and `$$ocr` for optical character recognition.\n- `$$ocr` can be combined with a custom description.\n\n_This message will self-destruct in 15 seconds._";
+
