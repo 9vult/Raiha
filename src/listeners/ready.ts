@@ -69,7 +69,12 @@ export default (client: Client): void => {
 
     commands?.create({
       name: 'help',
-      description: 'Raiha help'
+      description: 'Raiha short help'
+    });
+
+    commands?.create({
+      name: 'longhelp',
+      description: 'Raiha long help'
     });
 
     commands?.create({

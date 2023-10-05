@@ -3,7 +3,7 @@ import type { Database } from '@firebase/database-types';
 
 import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
-import { helpText, whyText } from '../misc/misc';
+import { longHelp, shortHelp, whyText } from '../misc/misc';
 import { VERSION } from '../raiha';
 
 export default (client: Client, db: Database, leaderboards: {[key:string]:any}): void => {
@@ -178,11 +178,27 @@ export default (client: Client, db: Database, leaderboards: {[key:string]:any}):
 
     if (commandName === 'help') {
       const embed = new EmbedBuilder()
-        .setTitle(`Raiha Help`)
-        .setDescription(helpText)
+        .setTitle(`Raiha Help (Condensed)`)
+        .setDescription(shortHelp)
         .setColor(0xd797ff);
 
-      await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) });
+      await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) })
+      .then(theReply => {
+        setTimeout(() => theReply.delete(), 45000);
+      });
+      return;
+    }
+
+    if (commandName === 'longhelp') {
+      const embed = new EmbedBuilder()
+        .setTitle(`Raiha Help`)
+        .setDescription(longHelp)
+        .setColor(0xd797ff);
+
+      await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions([[], []]) })
+      .then(theReply => {
+        setTimeout(() => theReply.delete(), 90000);
+      });
       return;
     }
 

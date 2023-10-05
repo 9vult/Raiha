@@ -13,7 +13,7 @@ require('dotenv').config();
 var admin = require('firebase-admin');
 var firebase = require('./firebase.json');
 
-export const VERSION = "2.3.1";
+export const VERSION = "2.3.5";
 
 admin.initializeApp({
   credential: admin.credential.cert(firebase),
