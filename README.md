@@ -40,6 +40,7 @@ Finally, in the firebase database, set the server configuration at `/Configurati
   errorMismatch: "default" | string (emojiID),
   errorNoAlt: "default" | string (emojiID),
   errorNotReply: "default" | string (emojiID),
+  greenThreshold: number
   leaderboard: boolean,
   loserboard: boolean,
   modChannel: string (channelID),

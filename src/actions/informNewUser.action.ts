@@ -3,7 +3,14 @@ import { hintText } from "../misc/misc";
 
 export const informNewUser = async (originalMessage: Message<boolean>, leaderboards: {[key:string]:any}) => {
   let op = originalMessage.author.id;
-  if (!leaderboards['Raiha'] || leaderboards['Raiha'][originalMessage.guild!.id][op] == undefined || leaderboards['Raiha'][originalMessage.guild!.id][op] == 0) {
+  let server = originalMessage.guild!.id;
+  let config = leaderboards['Configuration'];
+  let serverGreenThreshold: number = config[server]['greenThreshold'] || 0;
+
+  if (!leaderboards['Raiha'] || 
+      leaderboards['Raiha'][originalMessage.guild!.id][op] == undefined || 
+      leaderboards['Raiha'][server][op] <= serverGreenThreshold
+  ) {
     const embed = new EmbedBuilder()
       .setTitle("Alt Text Help")
       .setDescription(hintText)
