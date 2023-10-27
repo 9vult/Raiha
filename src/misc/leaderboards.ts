@@ -1,100 +1,43 @@
-import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
+import { leaderboards } from '../raiha';
+import { Leaderboard, SortedLeaderboard } from './types';
 
-export const postRank = async (id: string, lbs: {[key:string]:any}, server: string) => {
-  const sorted = leaderboardSorter(lbs, server);
-  const nativeS = sorted[0];
-  const raihaS = sorted[1];
-  const loserS = sorted[2];
-  let iNative = 0;
-  let iRaiha = 0;
-  let iLoser = 0;
-  let nativeVal = 0;
-  let raihaVal = 0;
-  let loserVal = 0;
-  let nativeHas = false;
-  let raihaHas = false;
-  let loserHas = false;
-  for (let obj of nativeS) {
-    iNative++;
-    if (obj[0] == id) {
-      nativeVal = obj[1];
-      nativeHas = (nativeVal !== 0);
-      break;
+export function postRank(id: string, guild: string): string {
+  const { Native, Raiha, Loserboard } = leaderboards;
+  const [native, raiha, loser] = [Native, Raiha, Loserboard].map(leaderboardRecord => {
+    const leaderboard = leaderboardRecord[guild];
+    const value = leaderboard[id] ?? 0;
+    return {
+      value: value,
+      rank: value ? Object.values(leaderboard).reduce((a, b) => a + (b > value ? 1 : 0), 0) + 1 : null,
     }
-  }
-  for (let obj of raihaS) {
-    iRaiha++;
-    if (obj[0] == id) {
-      raihaVal = obj[1];
-      raihaHas = (raihaVal !== 0);
-      break;
-    }
-  }
-  for (let obj of loserS) {
-    iLoser++;
-    if (obj[0] == id) {
-      loserVal = obj[1];
-      loserHas = (loserVal !== 0);
-      break;
-    }
-  }
-  if (!nativeHas) iNative = -1;
-  if (!raihaHas) iRaiha = -1;
-  if (!loserHas) iLoser = -1;
-  return `Leaderboard ranking for <@${id}>:\n__**Native**__\n${iNative != -1 ? '#' + (iNative) : 'Unranked'} with a count of ${nativeVal}.\n__**Raiha**__\n${iRaiha != -1 ? '#' + iRaiha : 'Unranked'} with a count of ${raihaVal}.\n__**Loserboard**__\n${iLoser != -1 ? '#' + (iLoser) : 'Unranked'} with a count of ${loserVal}.`;
+  })
+  return `Leaderboard ranking for <@${id}>:\n` +
+    `__**Native**__\n${native.rank ? `#${native.rank}` : 'Unranked'} with a count of ${native.value}.\n` +
+    `__**Raiha**__\n${raiha.rank ? `#${raiha.rank}` : 'Unranked'} with a count of ${raiha.value}.\n` +
+    `__**Loserboard**__\n${loser.rank ? `#${loser.rank}` : 'Unranked'} with a count of ${loser.value}.`;
 }
 
-export const postLeaderboard = async (lbs: {[key:string]:any}, server: string, page: number) => {
-  const sorted = leaderboardSorter(lbs, server);
-  const nativeResult = generateText(sorted[0], 0, page, 5);
-  const raihaResult = generateText(sorted[1], 0, page, 5);
-  const result = {
-    text: `__**Native**__\n${nativeResult}\n__**Raiha**__\n${raihaResult}`,
-    footer: `So far, Raiha has served ${lbs['Statistics']['Requests']} requests.`
+export function postLeaderboard(guild: string, page: number): { text: string, footer: string } {
+  const [nativeSorted, raihaSorted] = [sortLeaderboard(leaderboards.Native[guild]), sortLeaderboard(leaderboards.Raiha[guild])]
+  return {
+    text: `__**Native**__\n${generateText(nativeSorted, 0, page, 5)}\n` +
+      `__**Raiha**__\n${generateText(raihaSorted, 0, page, 5)}`,
+    footer: `So far, Raiha has served ${leaderboards.Statistics.Requests} requests.`
   };
-  return result;
 }
 
-export const postLoserboard = async (lbs: {[key:string]:any}, server: string, page: number) => {
-  const sorted = leaderboardSorter(lbs, server);
-  const loserS = sorted[2];
-  return generateText(loserS, 0, page, 10);
+export async function postLoserboard(guild: string, page: number) {
+  return generateText(sortLeaderboard(leaderboards.Loserboard[guild]), 0, page, 10);
 }
 
-const generateText = (board: any[], startIndex: number, page: number, pageLength: number) => {
-  let startPosition = startIndex + ((page - 1) * pageLength);
-  let result: string = '';
-  if (board.length == 0 || board.length < startPosition) {
-    return 'No results';
-  }
-  for (let i = startPosition; i < startPosition + pageLength; i++) {
-    
-    if (i > board.length - 1) return result;
-    result = `${result}${i !== startPosition ? '\n' : ''}${i+1}. <@${board[i][0]}> - ${board[i][1]}`;
-  }
-  return result;
+function generateText(leaderboard: SortedLeaderboard, startIndex: number, page: number, pageLength: number): string {
+  const startPosition = startIndex + ((page - 1) * pageLength);
+  if (leaderboard.length == 0 || leaderboard.length < startPosition) return 'No results';
+  return leaderboard.slice(startIndex, startIndex + pageLength).reduce((a, { user, value }, i) =>
+    a + `${i !== startPosition ? '\n' : ''}${i + 1}. <@${user}> - ${value}`, "")
 }
 
-export const leaderboardSorter = (lbs: {[key:string]:any}, server: string) => {
-  let nativeS: any[] = [];
-  let raihaS: any[] = [];
-  let loserS: any[] = [];
-
-  if (lbs['Native'] && lbs['Native'][server])
-    for (var k in lbs['Native'][server]) {
-      nativeS.push([k, lbs['Native'][server][k]]);
-    }
-  if (lbs['Raiha'] && lbs['Raiha'][server])
-    for (var k in lbs['Raiha'][server]) {
-      raihaS.push([k, lbs['Raiha'][server][k]]);
-    }
-  if (lbs['Loserboard'] && lbs['Loserboard'][server])
-    for (var k in lbs['Loserboard'][server]) {
-      loserS.push([k, lbs['Loserboard'][server][k]]);
-    }
-  nativeS.sort((a, b) => { return b[1] - a[1]; });
-  raihaS.sort((a, b) => { return b[1] - a[1]; });
-  loserS.sort((a, b) => { return b[1] - a[1]; });
-
-  return [nativeS, raihaS, loserS];
-}
+export const sortLeaderboard = (leaderboard: Leaderboard): SortedLeaderboard =>
+  Object.entries(leaderboard)
+    .map(([user, value]) => ({ user, value }))
+    .sort((a, b) => b.value - a.value);

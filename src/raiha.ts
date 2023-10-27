@@ -3,15 +3,16 @@
  * (c) 2022 9volt
  */
 
-import { Client, EmbedBuilder, GatewayIntentBits, TextChannel } from "discord.js";
+import { Client, GatewayIntentBits } from "discord.js";
 import messageCreate from "./listeners/messageCreate";
 import interactionCreate from "./listeners/interactionCreate";
 import ready from "./listeners/ready";
 import { loserboardNotify } from "./actions/loserboardNotify.action";
-
+import admin from 'firebase-admin'
+import { Configuration, Data, Leaderboard, Statistics, UserSettings } from './misc/types';
+import { DataSnapshot } from '@firebase/database-types';
+const firebase = require('../firebase.json');
 require('dotenv').config();
-var admin = require('firebase-admin');
-var firebase = require('./firebase.json');
 
 export const VERSION = "2.3.5";
 
@@ -20,15 +21,16 @@ admin.initializeApp({
   databaseURL: process.env.DATABASE_URL
 });
 
-var db = admin.database();
+export const db = admin.database();
 
-var leaderboards: {[key:string]:any} = {
+export const leaderboards: Data = {
   Native: {},
   Raiha: {},
   Loserboard: {},
   Statistics: {},
-  Configuration: {}
-};
+  Configuration: {},
+  UserSettings: {}
+} as Data;
 
 const client = new Client({
   intents: [
@@ -39,29 +41,22 @@ const client = new Client({
 });
 export const CLIENT: Client = client;
 
-db.ref('/Leaderboard/Native').on("value", function(data: {[key:string]:any}) {
-  leaderboards['Native'] = data.val();
+db.ref('/Leaderboard/Native').on("value", (data: DataSnapshot) => leaderboards.Native = data.val() as Record<string, Leaderboard>);
+db.ref('/Leaderboard/Raiha').on("value", (data: DataSnapshot) => leaderboards.Raiha = data.val() as Record<string, Leaderboard>);
+db.ref('/Leaderboard/Loserboard').on("value", function (data: DataSnapshot) {
+  const loserboard = data.val() as Record<string, Leaderboard>
+  loserboardNotify(loserboard);
+  leaderboards.Loserboard = loserboard;
 });
-db.ref('/Leaderboard/Raiha').on("value", function(data: {[key:string]:any}) {
-  leaderboards['Raiha'] = data.val();
+db.ref('/Statistics').on("value", function (data: DataSnapshot) {
+  leaderboards.Statistics = data.val() as Statistics;
 });
-db.ref('/Leaderboard/Loserboard').on("value", function(data: {[key:string]:any}) {
-  loserboardNotify(data.val(), leaderboards);
-  leaderboards['Loserboard'] = data.val();
-});
-db.ref('/Statistics').on("value", function(data: {[key:string]:any}) {
-  leaderboards['Statistics'] = data.val();
-});
-db.ref('/Configuration').on("value", function(data: {[key:string]:any}) {
-  leaderboards['Configuration'] = data.val();
-});
-db.ref('/UserSettings').on("value", function(data: {[key:string]:any}) {
-  leaderboards['UserSettings'] = data.val();
-});
+db.ref('/Configuration').on("value", (data: DataSnapshot) => leaderboards.Configuration = data.val() as Record<string, Configuration>);
+db.ref('/UserSettings').on("value", (data: DataSnapshot) => leaderboards.UserSettings = data.val() as Record<string, UserSettings>);
 
 // Set up listeners
-ready(client);
-interactionCreate(client, db, leaderboards);
-messageCreate(client, db, leaderboards);
+client.on('ready', ready);
+client.on('interactionCreate', interactionCreate);
+client.on('messageCreate', messageCreate);
 
 client.login(process.env.TOKEN);
