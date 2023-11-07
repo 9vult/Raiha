@@ -1,7 +1,7 @@
 import { EmbedBuilder, Message, GuildMemberRoleManager, Interaction, GuildMember } from "discord.js";
 import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
-import { longHelp, shortHelp, whyText } from '../misc/misc';
+import { expiry, longHelp, shortHelp, whyText } from '../misc/misc';
 import { VERSION, db, leaderboards } from '../raiha';
 
 export default async function (interaction: Interaction) {
@@ -168,25 +168,27 @@ export default async function (interaction: Interaction) {
   }
 
   if (commandName === 'help') {
+    const expireTime = 45;
     const embed = new EmbedBuilder()
       .setTitle(`Raiha Help (Condensed)`)
-      .setDescription(shortHelp)
+      .setDescription(expiry(shortHelp, expireTime))
       .setColor(0xd797ff);
 
     await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-      .then(theReply => setTimeout(() => theReply.delete(), 45000));
+      .then(theReply => setTimeout(() => theReply.delete(), expireTime * 1000));
     return;
   }
 
   if (commandName === 'longhelp') {
+    const expireTime = 90;
     const embed = new EmbedBuilder()
       .setTitle(`Raiha Help`)
-      .setDescription(longHelp)
+      .setDescription(expiry(longHelp, expireTime))
       .setColor(0xd797ff);
 
     await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
       .then(theReply => {
-        setTimeout(() => theReply.delete(), 90000);
+        setTimeout(() => theReply.delete(), expireTime * 1000);
       });
     return;
   }
