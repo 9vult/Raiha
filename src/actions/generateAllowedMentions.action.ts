@@ -5,10 +5,10 @@ import { MessageMentionOptions } from "discord.js";
  * @param mentions [[Users], [Roles]]
  * @return MessageMentionOptions object
  */
-export const generateAllowedMentions = (mentions: Array<Array<string>>): MessageMentionOptions => {
+export function generateAllowedMentions([users, roles]: [string[], string[]] = [[], []]): MessageMentionOptions {
   return {
     parse: [],
-    users: mentions[0],
-    roles: mentions[1]
+    users,
+    roles
   };
 }

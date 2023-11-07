@@ -1,57 +1,57 @@
 import { EmbedBuilder, TextChannel } from "discord.js";
-import { CLIENT } from "../raiha";
+import { CLIENT, leaderboards } from "../raiha";
+import { Leaderboard } from 'src/misc/types';
 
-export const loserboardNotify = async (incoming: { [key: string]: any }, currentLeaderboards: { [key: string]: any }) => {
-  if (!currentLeaderboards || !incoming || !currentLeaderboards['Loserboard']) return;
-  let current = currentLeaderboards['Loserboard'];
-  let config = currentLeaderboards['Configuration'];
+export async function loserboardNotify(incoming: Record<string, Leaderboard>) {
+  if (!leaderboards.Loserboard || !incoming) return;
+  const { Loserboard, Configuration } = leaderboards;
 
-  for (let server of Object.keys(current)) {
-    let incomingServer = incoming[server];
-    if (!incomingServer) continue;
+  for (const [guildId, loserboard] of Object.entries(Loserboard)) {
+    const incomingGuild = incoming[guildId];
+    if (!incomingGuild) continue;
 
-    let serverMuteThreshold = config[server]['muteThreshold'];
-    let serverEnableWarnings: boolean = config[server]['enableWarnings'];
-    let serverModChannel = config[server]['modChannel'];
-    let serverSpecialWarnThresholds: number[] = config[server]['specialWarnThresholds'];
-    if (serverMuteThreshold <= 0) continue;
+    const { muteThreshold, enableWarnings, modChannel, specialWarnThresholds } = Configuration[guildId];
+    if (muteThreshold <= 0) continue;
 
-    for (let user of Object.keys(current[server])) {
-      let incomingUser = incoming[server][user];
-      if (!incomingUser) continue;
-      if (incomingUser <= current[server][user]) continue;
+    for (const [user, value] of Object.entries(loserboard)) {
+      const incomingValue = incomingGuild[user];
+      if (!incomingValue || incomingValue <= value) continue;
 
-      if (incomingUser != 0 && (incomingUser % serverMuteThreshold == 0)) {
+      if (incomingValue != 0 && (incomingValue % muteThreshold == 0)) {
         await new Promise(r => setTimeout(r, 60_000));
-        if (incomingUser <= currentLeaderboards['Loserboard'][server][user]) 
-          muteNotify(serverModChannel, user, incomingUser);
+        if (incomingValue <= value)
+          muteNotify(modChannel, user, incomingValue);
       }
-      if (serverEnableWarnings && incomingUser != 0 && ((incomingUser + 5) % serverMuteThreshold == 0)) {
+      if (enableWarnings && incomingValue != 0 && ((incomingValue + 5) % muteThreshold == 0)) {
         await new Promise(r => setTimeout(r, 60_000));
-        if (incomingUser <= currentLeaderboards['Loserboard'][server][user]) 
-          warnNotify(serverModChannel, user, incomingUser);
+        if (incomingValue <= value)
+          warnNotify(modChannel, user, incomingValue);
       }
-      if (serverSpecialWarnThresholds && serverSpecialWarnThresholds.includes(incomingUser)) { // Not bound to serverEnableWarnings
+      if (specialWarnThresholds && specialWarnThresholds.includes(incomingValue)) { // Not bound to enableWarnings
         await new Promise(r => setTimeout(r, 60_000));
-        if (incomingUser <= currentLeaderboards['Loserboard'][server][user]) 
-          warnNotify(serverModChannel, user, incomingUser);
+        if (incomingValue <= value)
+          warnNotify(modChannel, user, incomingValue);
       }
     }
   }
 }
 
-const muteNotify = async (channel: string, user: string, value: number) => {
+async function muteNotify(channel: string, user: string, value: number) {
   const embed = new EmbedBuilder()
-  .setTitle(`Loserboard Alert`)
-  .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${value}.\nAn image mute may be warranted.`)
-  .setColor(0xf4d7ff);
-  await (CLIENT.channels.cache.get(channel) as TextChannel).send({ embeds: [embed] })
+    .setTitle(`Loserboard Alert`)
+    .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${value}.\nAn image mute may be warranted.`)
+    .setColor(0xf4d7ff);
+  const fetchChannel = CLIENT.channels.cache.get(channel);
+  if (!fetchChannel?.isTextBased()) return;
+  await fetchChannel.send({ embeds: [embed] });
 }
 
-const warnNotify = async (channel: string, user: string, value: number) => {
+async function warnNotify(channel: string, user: string, value: number) {
   const embed = new EmbedBuilder()
-  .setTitle(`Loserboard Alert`)
-  .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${value}.\nThey should be warned that they are approaching an image mute.`)
-  .setColor(0xf4d7ff);
-  await (CLIENT.channels.cache.get(channel) as TextChannel).send({ embeds: [embed] })
+    .setTitle(`Loserboard Alert`)
+    .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${value}.\nThey should be warned that they are approaching an image mute.`)
+    .setColor(0xf4d7ff);
+  const fetchChannel = CLIENT.channels.cache.get(channel);
+  if (!fetchChannel?.isTextBased()) return;
+  await fetchChannel.send({ embeds: [embed] });
 }
