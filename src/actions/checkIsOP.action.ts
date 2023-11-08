@@ -5,6 +5,7 @@ export async function checkIsOP(message: Message<boolean>, caller: User) {
   const messageID = message.id;
 
   let isOP = false;
+  let opData = null;
   let currentMessageID = messageID;
   // loop safety
   let idx = 0;
@@ -23,6 +24,7 @@ export async function checkIsOP(message: Message<boolean>, caller: User) {
       // Reached the top-level message
       if (refVal['OP'] == caller.id) {
         isOP = true;
+        opData = refVal;
         break;
       } else break;
     } else {
@@ -32,5 +34,5 @@ export async function checkIsOP(message: Message<boolean>, caller: User) {
     }
   }
 
-  return isOP;
+  return [isOP, opData];
 }

@@ -70,35 +70,7 @@ export default async function (interaction: Interaction) {
       })
     if (!message) return;
 
-    let isOP = await checkIsOP(message, user);
-
-    // let isOP = false;
-    // let currentMessageID = messageID;
-    // // loop safety
-    // let idx = 0;
-    // let prevRefVal;
-    // while (idx < 15) { // if there's ever more than 15... there's a bigger issue than the ability to delete lol
-    //   idx++;
-    //   const dbRef = db.ref();
-    //   const ref = await dbRef.child(`/Actions/${message.guildId}/${message.channel.id}/${currentMessageID}`).get();
-    //   if (!ref.exists()) {
-    //     if (prevRefVal && prevRefVal['OP'] == user.id)
-    //       isOP = true; // experimental(?) to fix deletion not working on after-the-fact alts
-    //     break;
-    //   }
-    //   const refVal = await ref.val();
-    //   if (refVal['Parent'] == ref.key) {
-    //     // Reached the top-level message
-    //     if (refVal['OP'] == user.id) {
-    //       isOP = true;
-    //       break;
-    //     } else break;
-    //   } else {
-    //     // Still must traverse upwards
-    //     currentMessageID = refVal['Parent'];
-    //     prevRefVal = refVal;
-    //   }
-    // }
+    let isOP = (await checkIsOP(message, user))[0];
 
     let responseText = '';
     if (isOP) {
