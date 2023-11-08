@@ -1,14 +1,15 @@
-import { MessageMentionOptions } from "discord.js";
+import { Message, MessageMentionOptions } from "discord.js";
 
 /**
  * Generate a list of allowed mentions
  * @param mentions [[Users], [Roles]]
  * @return MessageMentionOptions object
  */
-export default function generateAllowedMentions([users, roles]: [string[], string[]] = [[], []]): MessageMentionOptions {
-  return {
-    parse: [],
-    users,
-    roles
-  };
+export default function generateAllowedMentions(input?: [string[], string[]] | Message<true>): MessageMentionOptions {
+  if (input instanceof Message) {
+    const { mentions: { users, roles } } = input;
+    return { parse: [], users: [...users].map(([user]) => user), roles: [...roles].map(([role]) => role) };
+  }
+  const [users, roles] = input ?? [[], []];
+  return { parse: [], users, roles };
 }

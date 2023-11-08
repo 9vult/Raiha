@@ -4,7 +4,6 @@ import type { Database } from '@firebase/database-types';
 
 import generateAIDescription from "../actions/generateAIDescription.action";
 import generateAllowedMentions from "../actions/generateAllowedMentions.action";
-import getMentions from "../actions/getMentions.action";
 import react from "../actions/react.action";
 import sendError from "../actions/sendError.action";
 import informNewUser from "../actions/informNewUser.action";
@@ -63,8 +62,7 @@ export default async function (message: Message) {
       }
       // We have the correct number of alts
       let fixedFiles = await applyAltText(message, altTexts);
-      let mentions = getMentions(message);
-      let allowedMentions = generateAllowedMentions(mentions);
+      let allowedMentions = generateAllowedMentions(message);
       let sentMsg;
       if (message.reference) {
         // This message is a reply (1a)
@@ -216,8 +214,7 @@ export default async function (message: Message) {
     }
     // We have the correct number of alts
     let fixedFiles = await applyAltText(op, altTexts);
-    let mentions = getMentions(op);
-    let allowedMentions = generateAllowedMentions(mentions);
+    let allowedMentions = generateAllowedMentions(op);
     let sentMsg;
 
     let repostContent;
