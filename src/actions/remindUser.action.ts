@@ -1,17 +1,15 @@
 import { EmbedBuilder, Message } from "discord.js"
-import { expiry, reminderText } from "../misc/misc";
+import { expireText, reminderText } from "../misc/misc";
 import { leaderboards } from '../raiha';
 
-export async function remindUser(originalMessage: Message<boolean>) {
-  const expireTime = 15;
+const EXPIRE_TIME = 15;
+export default async function remindUser(originalMessage: Message<boolean>) {
   if (!leaderboards.UserSettings?.[originalMessage.author.id]?.Reminder) return;
   const embed = new EmbedBuilder()
     .setTitle("Alt Text Help")
-    .setDescription(expiry(reminderText, expireTime))
+    .setDescription(reminderText + expireText(EXPIRE_TIME))
     .setColor(0xf4d7ff);
 
   await originalMessage.reply({ embeds: [embed] })
-    .then(theReply => {
-      setTimeout(() => theReply.delete(), expireTime * 1000);
-    });
+    .then(reply => setTimeout(() => reply.delete(), EXPIRE_TIME * 1000));
 }

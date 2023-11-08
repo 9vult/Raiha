@@ -2,19 +2,18 @@ import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from
 import { ServerValue } from 'firebase-admin/database';
 import type { Database } from '@firebase/database-types';
 
-import { generateAIDescription } from "../actions/generateAIDescription.action";
-import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
-import { getMentions } from "../actions/getMentions.action";
-import { react } from "../actions/react.action";
-import { sendError } from "../actions/sendError.action";
-import { informNewUser } from "../actions/informNewUser.action";
-import { remindUser } from "../actions/remindUser.action";
+import generateAIDescription from "../actions/generateAIDescription.action";
+import generateAllowedMentions from "../actions/generateAllowedMentions.action";
+import getMentions from "../actions/getMentions.action";
+import react from "../actions/react.action";
+import sendError from "../actions/sendError.action";
+import informNewUser from "../actions/informNewUser.action";
+import remindUser from "../actions/remindUser.action";
+import checkIsOP from "../actions/checkIsOP.action";
 import { leaderboards, db, CLIENT } from '../raiha';
-import { checkIsOP } from "../actions/checkIsOP.action";
-import { expiry } from "../misc/misc";
+import { expireText } from "../misc/misc";
 
 export default async function (message: Message) {
-  const config = leaderboards.Configuration;
   // Prereqs
   if (message.author.bot || !message.inGuild()) return;
   let msglc = message.content.toLowerCase();
@@ -32,8 +31,9 @@ export default async function (message: Message) {
     } else {
       hasGoodAttachments = true;
       if (!areNotImages(message)) {
-        const ref2 = db.ref(`/Leaderboard/Native/${message.guild!.id}`).child(message.author.id);
-        ref2.set(ServerValue.increment(1));
+        db.ref(`/Leaderboard/Native/${message.guild!.id}`)
+          .child(message.author.id)
+          .set(ServerValue.increment(1));
       }
     }
     let altStartIndex = getAltPosition(message);
@@ -44,8 +44,9 @@ export default async function (message: Message) {
       for (let alt of altTexts) {
         if (alt.trim().length === 0) {
           await react(message, 'ERR_MISMATCH');
-          const ref2 = db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`).child(message.author.id);
-          ref2.set(ServerValue.increment(1));
+          db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`)
+            .child(message.author.id)
+            .set(ServerValue.increment(1));
           return;
         }
       }
@@ -95,21 +96,25 @@ export default async function (message: Message) {
         Request: message.content.substring(altStartIndex[0]),
         Body: message.content.substring(0, altStartIndex[0]).trim()
       };
-      const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`).child(sentMsg.id);
-      ref.set(msgData);
-      const ref2 = db.ref(`/Leaderboard/Raiha/${message.guild!.id}`).child(message.author.id);
-      ref2.set(ServerValue.increment(1));
+      db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`)
+        .child(sentMsg.id)
+        .set(msgData);
+      db.ref(`/Leaderboard/Raiha/${message.guild!.id}`)
+        .child(message.author.id)
+        .set(ServerValue.increment(1));
 
       // Statistics
-      const ref4 = db.ref(`/Statistics/`).child('Requests');
-      ref4.set(ServerValue.increment(1));
+      db.ref(`/Statistics/`)
+        .child('Requests')
+        .set(ServerValue.increment(1));
 
       return;
     } else {
       // The user posted an image without alt text and did not call the bot :(
       if (!hasGoodAttachments) {
-        const ref2 = db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`).child(message.author.id);
-        ref2.set(ServerValue.increment(1));
+        db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`)
+          .child(message.author.id)
+          .set(ServerValue.increment(1));
         await informNewUser(message);
         await remindUser(message);
       }
@@ -118,7 +123,7 @@ export default async function (message: Message) {
     // This message DOES NOT have attachments
 
     if (message.reference && wantsDelete(message)) {
-      const expireTime = 10;
+      const EXPIRE_TIME = 10;
       let parent = await message.channel.messages.fetch(message.reference.messageId!);
       if (wasPostedByBot(parent)) {
         let isOP = (await checkIsOP(parent, message.author))[0];
@@ -129,10 +134,10 @@ export default async function (message: Message) {
           responseText = 'You are not the author of this message, or this message is not a Raiha message.';
           const embed = new EmbedBuilder()
             .setTitle(`Raiha Message Delete`)
-            .setDescription(expiry(responseText, 10))
+            .setDescription(responseText + expireText(EXPIRE_TIME))
             .setColor(0xd797ff);
           await message.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-          .then(reply => setTimeout(() => reply.delete(), expireTime * 1000));
+            .then(reply => setTimeout(() => reply.delete(), EXPIRE_TIME * 1000));
         }
       }
     }
@@ -157,8 +162,9 @@ export default async function (message: Message) {
               allowedMentions: generateAllowedMentions()
             });
             await message.delete();
-            const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/${opData['Parent']}`).child("Body");
-            ref.set(result);
+            db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/${opData['Parent']}`)
+              .child("Body")
+              .set(result);
           } else if (content.toLowerCase().startsWith("edit!")) {
             let replacement = content.substring(5).trim();
             await parent.edit({
@@ -166,8 +172,9 @@ export default async function (message: Message) {
               allowedMentions: generateAllowedMentions()
             });
             await message.delete();
-            const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/${opData['Parent']}`).child("Body");
-            ref.set(replacement);
+            db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/${opData['Parent']}`)
+              .child("Body")
+              .set(replacement);
           }
           return;
         }
@@ -200,7 +207,9 @@ export default async function (message: Message) {
     }
     for (let alt of altTexts) {
       if (alt.length > 1000) {
-        const embed = new EmbedBuilder().setTitle(`Error`).setDescription(`Discord limitations limit alt text to 1000 characters. Your specified alt text is ${alt.length} characters. Please try again.`);
+        const embed = new EmbedBuilder()
+          .setTitle("Error")
+          .setDescription(`Discord limitations limit alt text to 1000 characters. Your specified alt text is ${alt.length} characters. Please try again.`);
         await message.reply({ embeds: [embed] });
         return;
       }
@@ -246,23 +255,27 @@ export default async function (message: Message) {
       Request: message.content.substring(altStartIndex[0]),
       Body: message.content.substring(0, altStartIndex[0]).trim()
     };
-    const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`).child(sentMsg.id);
-    ref.set(msgData);
+    db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`)
+      .child(sentMsg.id)
+      .set(msgData);
 
-    const ref2 = db.ref(`/Leaderboard/Raiha/${message.guild!.id}`).child(message.author.id);
-    ref2.set(ServerValue.increment(1));
+    db.ref(`/Leaderboard/Raiha/${message.guild!.id}`)
+      .child(message.author.id)
+      .set(ServerValue.increment(1));
 
     if (message.author.id === op.author.id) {
       if (leaderboards['Loserboard'][message.guild!.id][op.author.id] != 0) {
         // Decrement from the loserboard if they call on themselves after the fact
-        const ref3 = db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`).child(message.author.id);
-        ref3.set(ServerValue.increment(-1));
+        db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`)
+          .child(message.author.id)
+          .set(ServerValue.increment(-1));
       }
     }
 
     // Statistics
-    const ref4 = db.ref(`/Statistics/`).child('Requests');
-    ref4.set(ServerValue.increment(1));
+    db.ref(`/Statistics/`)
+      .child('Requests')
+      .set(ServerValue.increment(1));
 
     return;
   }

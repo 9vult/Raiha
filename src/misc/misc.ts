@@ -11,10 +11,4 @@ export const reminderText = "Hi, you asked me to remind you on Raiha usage—Her
 
 export const shortHelp = "Here are the basics of using Raiha:\n" + shortHelpBase + "\nFor more in-depth help, `/longhelp`. For why, `/why`.\n**To see this server's alt text rules, `/altrules`.**\nIf you would like to be reminded on Raiha usage in the future, `/usersetting Reminder YES`.";
 
-export const expiry = (dialogue: string, seconds: number) => {
-  let currentTime = Math.round(Date.now() / 1000);
-  let goal = currentTime + seconds;
-
-  return dialogue + `\n\n_This message will self-destruct <t:${goal}:R>._`;
-};
-
+export const expireText = (seconds: number) => `\n\n_This message will self-destruct <t:${Math.round(Date.now() / 1000) + seconds}:R>._`;

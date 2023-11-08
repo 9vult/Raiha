@@ -1,8 +1,8 @@
 import { Message } from "discord.js";
-import { sendError } from "./sendError.action";
+import sendError from "./sendError.action";
 import { leaderboards } from '../raiha';
 
-export async function react(message: Message<true>, reaction: string) {
+export default async function react(message: Message<true>, reaction: string) {
   const config = leaderboards.Configuration;
   let serverValue;
   try {

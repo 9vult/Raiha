@@ -1,7 +1,7 @@
 import { Message, User } from "discord.js";
 import { db } from '../raiha';
 
-export async function checkIsOP(message: Message<boolean>, caller: User) {
+export default async function checkIsOP(message: Message<boolean>, caller: User) {
   const messageID = message.id;
 
   let isOP = false;

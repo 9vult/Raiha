@@ -2,7 +2,7 @@ import { EmbedBuilder, TextChannel } from "discord.js";
 import { CLIENT, leaderboards } from "../raiha";
 import { Leaderboard } from 'src/misc/types';
 
-export async function loserboardNotify(incoming: Record<string, Leaderboard>) {
+export default async function loserboardNotify(incoming: Record<string, Leaderboard>) {
   if (!leaderboards.Loserboard || !incoming) return;
   const { Loserboard, Configuration } = leaderboards;
 

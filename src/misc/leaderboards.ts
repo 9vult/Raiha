@@ -7,7 +7,7 @@ export function postRank(id: string, guild: string): string {
     const leaderboard = leaderboardRecord[guild];
     const value = leaderboard[id] ?? 0;
     return {
-      value: value,
+      value,
       rank: value ? Object.values(leaderboard).reduce((a, b) => a + (b > value ? 1 : 0), 0) + 1 : null,
     }
   })

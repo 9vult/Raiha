@@ -16,7 +16,7 @@ interface DescriptionResults {
   }
 }
 
-export async function generateAIDescription(imageUrl: string, doCaption: boolean, doOCR: boolean) {
+export default async function generateAIDescription(imageUrl: string, doCaption: boolean, doOCR: boolean) {
   const captionEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=caption`;
   const ocrEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=read`;
   const bothEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=caption,read`;

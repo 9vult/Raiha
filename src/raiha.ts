@@ -7,7 +7,7 @@ import { Client, GatewayIntentBits } from "discord.js";
 import messageCreate from "./listeners/messageCreate";
 import interactionCreate from "./listeners/interactionCreate";
 import ready from "./listeners/ready";
-import { loserboardNotify } from "./actions/loserboardNotify.action";
+import loserboardNotify from "./actions/loserboardNotify.action";
 import admin from 'firebase-admin'
 import { Data } from './misc/types';
 import { DataSnapshot } from '@firebase/database-types';

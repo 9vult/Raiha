@@ -5,7 +5,7 @@ import { MessageMentionOptions } from "discord.js";
  * @param mentions [[Users], [Roles]]
  * @return MessageMentionOptions object
  */
-export function generateAllowedMentions([users, roles]: [string[], string[]] = [[], []]): MessageMentionOptions {
+export default function generateAllowedMentions([users, roles]: [string[], string[]] = [[], []]): MessageMentionOptions {
   return {
     parse: [],
     users,
