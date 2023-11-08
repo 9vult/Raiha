@@ -9,7 +9,9 @@ import { react } from "../actions/react.action";
 import { sendError } from "../actions/sendError.action";
 import { informNewUser } from "../actions/informNewUser.action";
 import { remindUser } from "../actions/remindUser.action";
-import { leaderboards, db } from '../raiha';
+import { leaderboards, db, CLIENT } from '../raiha';
+import { checkIsOP } from "../actions/checkIsOP.action";
+import { expiry } from "../misc/misc";
 
 export default async function (message: Message) {
   const config = leaderboards.Configuration;
@@ -90,7 +92,8 @@ export default async function (message: Message) {
         Alt: altAuthor,
         OP: opAuthor,
         Parent: sentMsg.id,
-        Request: message.content.substring(altStartIndex[0])
+        Request: message.content.substring(altStartIndex[0]),
+        Body: message.content.substring(0, altStartIndex[0]).trim()
       };
       const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`).child(sentMsg.id);
       ref.set(msgData);
@@ -113,8 +116,67 @@ export default async function (message: Message) {
     }
   } else {
     // This message DOES NOT have attachments
+
+    if (message.reference && wantsDelete(message)) {
+      const expireTime = 10;
+      let parent = await message.channel.messages.fetch(message.reference.messageId!);
+      if (wasPostedByBot(parent)) {
+        let isOP = (await checkIsOP(parent, message.author))[0];
+        let responseText = '';
+        if (isOP) {
+          await parent.delete().catch(() => {/* TODO: something here */ })
+        } else {
+          responseText = 'You are not the author of this message, or this message is not a Raiha message.';
+          const embed = new EmbedBuilder()
+            .setTitle(`Raiha Message Delete`)
+            .setDescription(expiry(responseText, 10))
+            .setColor(0xd797ff);
+          await message.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
+          .then(reply => setTimeout(() => reply.delete(), expireTime * 1000));
+        }
+      }
+    }
+
+    if (message.reference && wantsEdit(message)) {
+      let parent = await message.channel.messages.fetch(message.reference.messageId!);
+      if (wasPostedByBot(parent)) {
+        const opLookup = await checkIsOP(parent, message.author)
+        let isOP = opLookup[0];
+        let opData = opLookup[1];
+        if (isOP && opData['Body'] && opData['Body'] != '') {
+          let content = message.content;
+          if (content.toLowerCase().startsWith("r/")) {
+            content = content.substring(2);
+            let lookup = content.substring(0, content.search(/\//)).trim();
+            let replacement = content.substring(content.search(/\//) + 1).trim();
+            let result = opData['Body'].replace(lookup, replacement);
+            let oldBody = parent.content;
+            let newBody = oldBody.replace(opData['Body'], result);
+            await parent.edit({
+              content: newBody,
+              allowedMentions: generateAllowedMentions()
+            });
+            await message.delete();
+            const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/${opData['Parent']}`).child("Body");
+            ref.set(result);
+          } else if (content.toLowerCase().startsWith("edit!")) {
+            let replacement = content.substring(5).trim();
+            await parent.edit({
+              content: parent.content.replace(opData['Body'], replacement),
+              allowedMentions: generateAllowedMentions()
+            });
+            await message.delete();
+            const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/${opData['Parent']}`).child("Body");
+            ref.set(replacement);
+          }
+          return;
+        }
+      }
+    }
+
     let altStartIndex = getAltPosition(message);
     if (altStartIndex[0] !== 0) return; // Reply trigger must be at start of message (if it exists)
+
     if (!message.reference) {
       // Trigger message is not a reply
       await react(message, 'ERR_NOT_REPLY');
@@ -181,7 +243,8 @@ export default async function (message: Message) {
       Alt: altAuthor,
       OP: opAuthor,
       Parent: msgParentID,
-      Request: message.content.substring(altStartIndex[0])
+      Request: message.content.substring(altStartIndex[0]),
+      Body: message.content.substring(0, altStartIndex[0]).trim()
     };
     const ref = db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`).child(sentMsg.id);
     ref.set(msgData);
@@ -290,3 +353,39 @@ const parseAltText = (message: Message<boolean>, startIndex: number): Array<stri
   return message.content.substring(startIndex).trim().split("|");
 }
 
+/**
+ * Check if the message was posted by the bot
+ * @param message Message to check
+ * @returns True if the bot was the author
+ */
+const wasPostedByBot = (message: Message<boolean>): boolean => {
+  let botUser = CLIENT.user;
+  return botUser && message.author.id == botUser.id || false;
+}
+
+/**
+ * Check if this message contains a delete trigger
+ * @param message Incoming message to check
+ * @returns True if delete trigger is present
+ */
+const wantsDelete = (message: Message<boolean>): boolean => {
+  let lc = message.content.toLowerCase();
+  let delIndex = lc.search(/\bdelete\!/);    // delete!
+
+  if (delIndex !== -1) return true;
+  else return false;
+}
+
+/**
+ * Check if this message contains an edit trigger
+ * @param message Incoming message to check
+ * @returns True if edit trigger is present
+ */
+const wantsEdit = (message: Message<boolean>): boolean => {
+  let lc = message.content.toLowerCase();
+  let isEditRq = lc.startsWith("edit!");    // edit!
+  let isSed = lc.startsWith("r/");         // s/abc/def
+
+  if (isEditRq || isSed) return true;
+  else return false;
+}

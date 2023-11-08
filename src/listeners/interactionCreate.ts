@@ -1,8 +1,9 @@
 import { EmbedBuilder, Message, GuildMemberRoleManager, Interaction, GuildMember } from "discord.js";
 import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
-import { longHelp, shortHelp, whyText } from '../misc/misc';
+import { expiry, longHelp, shortHelp, whyText } from '../misc/misc';
 import { VERSION, db, leaderboards } from '../raiha';
+import { checkIsOP } from "../actions/checkIsOP.action";
 
 export default async function (interaction: Interaction) {
   if (!interaction.isCommand()) return;
@@ -69,33 +70,7 @@ export default async function (interaction: Interaction) {
       })
     if (!message) return;
 
-    let isOP = false;
-    let currentMessageID = messageID;
-    // loop safety
-    let idx = 0;
-    let prevRefVal;
-    while (idx < 15) { // if there's ever more than 15... there's a bigger issue than the ability to delete lol
-      idx++;
-      const dbRef = db.ref();
-      const ref = await dbRef.child(`/Actions/${message.guildId}/${message.channel.id}/${currentMessageID}`).get();
-      if (!ref.exists()) {
-        if (prevRefVal && prevRefVal['OP'] == user.id)
-          isOP = true; // experimental(?) to fix deletion not working on after-the-fact alts
-        break;
-      }
-      const refVal = await ref.val();
-      if (refVal['Parent'] == ref.key) {
-        // Reached the top-level message
-        if (refVal['OP'] == user.id) {
-          isOP = true;
-          break;
-        } else break;
-      } else {
-        // Still must traverse upwards
-        currentMessageID = refVal['Parent'];
-        prevRefVal = refVal;
-      }
-    }
+    let isOP = (await checkIsOP(message, user))[0];
 
     let responseText = '';
     if (isOP) {
@@ -168,25 +143,27 @@ export default async function (interaction: Interaction) {
   }
 
   if (commandName === 'help') {
+    const expireTime = 45;
     const embed = new EmbedBuilder()
       .setTitle(`Raiha Help (Condensed)`)
-      .setDescription(shortHelp)
+      .setDescription(expiry(shortHelp, expireTime))
       .setColor(0xd797ff);
 
     await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-      .then(theReply => setTimeout(() => theReply.delete(), 45000));
+      .then(theReply => setTimeout(() => theReply.delete(), expireTime * 1000));
     return;
   }
 
   if (commandName === 'longhelp') {
+    const expireTime = 90;
     const embed = new EmbedBuilder()
       .setTitle(`Raiha Help`)
-      .setDescription(longHelp)
+      .setDescription(expiry(longHelp, expireTime))
       .setColor(0xd797ff);
 
     await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
       .then(theReply => {
-        setTimeout(() => theReply.delete(), 90000);
+        setTimeout(() => theReply.delete(), expireTime * 1000);
       });
     return;
   }
