@@ -5,10 +5,10 @@ export const longHelp = `**Adding Alt Text Natively**\n1. Upload and attach an i
 
 export const whyText = `Alternative Text (alt text) is a text description of an image that is generally read by a screen reader to allow the visually impared to understand the context of an image. It may also benefit people with processing disorders or impaired mental processing capabilities.\nAdditionally, alt text is beneficial even outside the realm of accessibility—on Discord, alt text is indexed and searchable, allowing you to search for images quickly and easily!`;
 
-export const hintText = "Hi, it looks like you might be new to adding alt text with Raiha.\n" + shortHelpBase + "\nFor more details, `/help`. For why, `/why`.\n**To see this server's alt text rules, `/altrules`.**\nIf you would like to be reminded on Raiha usage in the future, `/usersetting Reminder YES`.";
+export const hintText = `Hi, it looks like you might be new to adding alt text with Raiha.\n${shortHelpBase}\nFor more details, \`/help\`. For why, \`/why\`.\n**To see this server's alt text rules, \`/altrules\`.**\nIf you would like to be reminded on Raiha usage in the future, \`/usersetting Reminder YES\`.`;
 
-export const reminderText = "Hi, you asked me to remind you on Raiha usage—Here's a TL;DR:\n" + shortHelpBase;
+export const reminderText = `Hi, you asked me to remind you on Raiha usage—Here's a TL;DR:\n${shortHelpBase}`;
 
-export const shortHelp = "Here are the basics of using Raiha:\n" + shortHelpBase + "\nFor more in-depth help, `/longhelp`. For why, `/why`.\n**To see this server's alt text rules, `/altrules`.**\nIf you would like to be reminded on Raiha usage in the future, `/usersetting Reminder YES`.";
+export const shortHelp = `Here are the basics of using Raiha:\n${shortHelpBase}\nFor more in-depth help, \`/longhelp\`. For why, \`/why\`.\n**To see this server's alt text rules, \`/altrules\`.**\nIf you would like to be reminded on Raiha usage in the future, \`/usersetting Reminder YES\`.`;
 
 export const expireText = (seconds: number) => `\n\n_This message will self-destruct <t:${Math.round(Date.now() / 1000) + seconds}:R>._`;
