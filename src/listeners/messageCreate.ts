@@ -318,18 +318,16 @@ const applyAltText = async (message: Message, altTexts: string[]): Promise<Attac
     const image = attachment[1];
     let altText = altTexts[index];
     if (altText.trim() == "$$") {
-      const desc = await generateAIDescription(image.url, "caption");
-      altText = desc.substring(0, 1000);
+      altText = await generateAIDescription(image.url, "caption");
     }
     else if (altText.trim() == "$$ocr") {
-      const desc = await generateAIDescription(image.url, "caption,read");
-      altText = desc.substring(0, 1000);
+      altText = await generateAIDescription(image.url, "caption,read");
     }
     else if (altText.trim().endsWith("$$ocr")) {
       const desc = await generateAIDescription(image.url, "read");
-      altText = (altText.replace(/\s\$\$ocr|\$\$ocr/, `: ${desc}`)).substring(0, 1000); // regex matches " $$ocr" and "$$ocr"
+      altText = (altText.replace(/\s\$\$ocr|\$\$ocr/, `: ${desc}`)); // regex matches " $$ocr" and "$$ocr"
     }
-    image.description = altText;
+    image.description = altText.substring(0, 1000);
     return image;
   }))
 
