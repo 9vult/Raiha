@@ -1,7 +1,5 @@
-import { Attachment, Client, EmbedBuilder, Message, MessageMentionOptions } from "discord.js";
+import { Attachment, EmbedBuilder, Message } from "discord.js";
 import { ServerValue } from 'firebase-admin/database';
-import type { Database } from '@firebase/database-types';
-
 import generateAIDescription from "../actions/generateAIDescription.action";
 import generateAllowedMentions from "../actions/generateAllowedMentions.action";
 import react from "../actions/react.action";
