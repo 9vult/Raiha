@@ -16,15 +16,10 @@ interface DescriptionResults {
   }
 }
 
-export default async function generateAIDescription(imageUrl: string, doCaption: boolean, doOCR: boolean) {
-  const captionEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=caption`;
-  const ocrEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=read`;
-  const bothEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=caption,read`;
-
-  let endpoint;
-  if (doCaption && doOCR) endpoint = bothEndpoint;
-  else if (doCaption) endpoint = captionEndpoint;
-  else endpoint = ocrEndpoint;
+type DescriptionFeatures = "caption" | "read" | "caption,read";
+export default async function generateAIDescription(imageUrl: string, features: DescriptionFeatures) {
+  const doCaption = features != "read", doOCR = features != "caption";
+  const endpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=${features}`;
 
   const response = await fetch(endpoint, {
     method: 'POST',

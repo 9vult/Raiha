@@ -30,7 +30,7 @@ export default async function (message: Message) {
     } else {
       hasGoodAttachments = true;
       if (!areNotImages(message)) {
-        db.ref(`/Leaderboard/Native/${message.guild!.id}`)
+        db.ref(`/Leaderboard/Native/${message.guild.id}`)
           .child(message.author.id)
           .set(ServerValue.increment(1));
       }
@@ -43,7 +43,7 @@ export default async function (message: Message) {
       for (let alt of altTexts) {
         if (alt.trim().length === 0) {
           await react(message, 'ERR_MISMATCH');
-          db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`)
+          db.ref(`/Leaderboard/Loserboard/${message.guild.id}`)
             .child(message.author.id)
             .set(ServerValue.increment(1));
           return;
@@ -84,7 +84,7 @@ export default async function (message: Message) {
       try {
         await message.delete();
       } catch (err) {
-        sendError(message.guild!.id, "Could not delete", (<Error>err).message, message.author!.id, message.url);
+        sendError(message.guild.id, "Could not delete", (<Error>err).message, message.author!.id, message.url);
       }
 
       let msgData = {
@@ -94,10 +94,10 @@ export default async function (message: Message) {
         Request: message.content.substring(altStartIndex[0]),
         Body: message.content.substring(0, altStartIndex[0]).trim()
       };
-      db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`)
+      db.ref(`/Actions/${message.guild.id}/${message.channel.id}/`)
         .child(sentMsg.id)
         .set(msgData);
-      db.ref(`/Leaderboard/Raiha/${message.guild!.id}`)
+      db.ref(`/Leaderboard/Raiha/${message.guild.id}`)
         .child(message.author.id)
         .set(ServerValue.increment(1));
 
@@ -110,7 +110,7 @@ export default async function (message: Message) {
     } else {
       // The user posted an image without alt text and did not call the bot :(
       if (!hasGoodAttachments) {
-        db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`)
+        db.ref(`/Leaderboard/Loserboard/${message.guild.id}`)
           .child(message.author.id)
           .set(ServerValue.increment(1));
         await informNewUser(message);
@@ -160,7 +160,7 @@ export default async function (message: Message) {
               allowedMentions: generateAllowedMentions()
             });
             await message.delete();
-            db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/${opData['Parent']}`)
+            db.ref(`/Actions/${message.guild.id}/${message.channel.id}/${opData['Parent']}`)
               .child("Body")
               .set(result);
           } else if (content.toLowerCase().startsWith("edit!")) {
@@ -170,7 +170,7 @@ export default async function (message: Message) {
               allowedMentions: generateAllowedMentions()
             });
             await message.delete();
-            db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/${opData['Parent']}`)
+            db.ref(`/Actions/${message.guild.id}/${message.channel.id}/${opData['Parent']}`)
               .child("Body")
               .set(replacement);
           }
@@ -242,7 +242,7 @@ export default async function (message: Message) {
       await op.delete();
       await message.delete();
     } catch (err) {
-      sendError(message.guild!.id, "Could not delete", (<Error>err).message, message.author!.id, message.url);
+      sendError(message.guild.id, "Could not delete", (<Error>err).message, message.author!.id, message.url);
     }
 
     let msgData = {
@@ -252,18 +252,18 @@ export default async function (message: Message) {
       Request: message.content.substring(altStartIndex[0]),
       Body: message.content.substring(0, altStartIndex[0]).trim()
     };
-    db.ref(`/Actions/${message.guild!.id}/${message.channel!.id}/`)
+    db.ref(`/Actions/${message.guild.id}/${message.channel.id}/`)
       .child(sentMsg.id)
       .set(msgData);
 
-    db.ref(`/Leaderboard/Raiha/${message.guild!.id}`)
+    db.ref(`/Leaderboard/Raiha/${message.guild.id}`)
       .child(message.author.id)
       .set(ServerValue.increment(1));
 
     if (message.author.id === op.author.id) {
-      if (leaderboards['Loserboard'][message.guild!.id][op.author.id] != 0) {
+      if (leaderboards['Loserboard'][message.guild.id][op.author.id] != 0) {
         // Decrement from the loserboard if they call on themselves after the fact
-        db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`)
+        db.ref(`/Leaderboard/Loserboard/${message.guild.id}`)
           .child(message.author.id)
           .set(ServerValue.increment(-1));
       }
@@ -282,35 +282,22 @@ export default async function (message: Message) {
  * Check if any of the attachments on the message are missing alt text 
  * @param message Incoming message to check
  */
-const isMissingAltText = (message: Message<boolean>): boolean => {
-  for (let attachment of message.attachments) {
-    let file = attachment[1];
-    if (!file.contentType?.startsWith('image')) continue;
-    if (file.description === null || file.description === undefined || file.description.trim() === '') {
-      return true;
-    }
-  }
-  return false;
-}
+const isMissingAltText = (message: Message): boolean =>
+  [...message.attachments].some(([_, file]) => file.contentType?.startsWith("image") && !file.description?.trim())
 
 /**
  * Checks if all the attachments are not images
  * @param message Incoming message to check
  */
-const areNotImages = (message: Message<boolean>): boolean => {
-  for (let attachment of message.attachments) {
-    let file = attachment[1];
-    if (file.contentType?.startsWith('image')) return false;
-  }
-  return true;
-}
+const areNotImages = (message: Message): boolean =>
+  [...message.attachments].some(([_, file]) => !file.contentType?.startsWith('image'))
 
 /**
  * Check if this message contains a trigger word
  * @param message Incoming message to check
  * @returns Position of the end of the trigger, or [-1]
  */
-const getAltPosition = (message: Message<boolean>): Array<number> => {
+const getAltPosition = (message: Message): number[] => {
   let lc = message.content.toLowerCase();
   let comIndex = lc.search(/\br!/);    // r!
   let altIndex = lc.search(/\balt:/);  // alt:
@@ -328,30 +315,25 @@ const getAltPosition = (message: Message<boolean>): Array<number> => {
  * @param altTexts Alt texts to apply
  * @returns Fixed attachments
  */
-const applyAltText = async (message: Message<boolean>, altTexts: Array<string>) => {
-  let fixedFiles: Array<Attachment> = [];
-  let index = 0;
-  for (let attachment of message.attachments) {
-    if (altTexts[index].trim() == "$$") {
-      const imageUrl = attachment[1].url;
-      const desc = await generateAIDescription(imageUrl, true, false);
-      altTexts[index] = desc.substring(0, 1000);
+const applyAltText = async (message: Message, altTexts: string[]): Promise<Attachment[]> =>
+  Promise.all([...message.attachments].map(async (attachment, index) => {
+    const image = attachment[1];
+    let altText = altTexts[index];
+    if (altText.trim() == "$$") {
+      const desc = await generateAIDescription(image.url, "caption");
+      altText = desc.substring(0, 1000);
     }
-    else if (altTexts[index].trim() == "$$ocr") {
-      const imageUrl = attachment[1].url;
-      const desc = await generateAIDescription(imageUrl, true, true);
-      altTexts[index] = desc.substring(0, 1000);
+    else if (altText.trim() == "$$ocr") {
+      const desc = await generateAIDescription(image.url, "caption,read");
+      altText = desc.substring(0, 1000);
     }
-    else if (altTexts[index].trim().endsWith("$$ocr")) {
-      const imageUrl = attachment[1].url;
-      const desc = await generateAIDescription(imageUrl, false, true);
-      altTexts[index] = (altTexts[index].replace(/\s\$\$ocr|\$\$ocr/, `: ${desc}`)).substring(0, 1000); // regex matches " $$ocr" and "$$ocr"
+    else if (altText.trim().endsWith("$$ocr")) {
+      const desc = await generateAIDescription(image.url, "read");
+      altText = (altText.replace(/\s\$\$ocr|\$\$ocr/, `: ${desc}`)).substring(0, 1000); // regex matches " $$ocr" and "$$ocr"
     }
-    attachment[1].description = altTexts[index++];
-    fixedFiles.push(attachment[1]);
-  }
-  return fixedFiles;
-}
+    image.description = altText;
+    return image;
+  }))
 
 /**
  * Retrieve the alt text from the message
@@ -359,43 +341,30 @@ const applyAltText = async (message: Message<boolean>, altTexts: Array<string>) 
  * @param startIndex Index the alt text starts at
  * @returns Array of alt texts
  */
-const parseAltText = (message: Message<boolean>, startIndex: number): Array<string> => {
-  return message.content.substring(startIndex).trim().split("|");
-}
+const parseAltText = (message: Message, startIndex: number): string[] =>
+  message.content.substring(startIndex).trim().split("|");
+
 
 /**
  * Check if the message was posted by the bot
  * @param message Message to check
  * @returns True if the bot was the author
  */
-const wasPostedByBot = (message: Message<boolean>): boolean => {
-  let botUser = CLIENT.user;
-  return botUser && message.author.id == botUser.id || false;
-}
+const wasPostedByBot = (message: Message): boolean => message.author.id == CLIENT.user?.id;
 
 /**
  * Check if this message contains a delete trigger
  * @param message Incoming message to check
  * @returns True if delete trigger is present
  */
-const wantsDelete = (message: Message<boolean>): boolean => {
-  let lc = message.content.toLowerCase();
-  let delIndex = lc.search(/\bdelete\!/);    // delete!
-
-  if (delIndex !== -1) return true;
-  else return false;
-}
+const wantsDelete = (message: Message): boolean => /\bdelete\!/.test(message.content.toLowerCase());
 
 /**
  * Check if this message contains an edit trigger
  * @param message Incoming message to check
  * @returns True if edit trigger is present
  */
-const wantsEdit = (message: Message<boolean>): boolean => {
-  let lc = message.content.toLowerCase();
-  let isEditRq = lc.startsWith("edit!");    // edit!
-  let isSed = lc.startsWith("r/");         // s/abc/def
-
-  if (isEditRq || isSed) return true;
-  else return false;
+const wantsEdit = (message: Message): boolean => {
+  const lc = message.content.toLowerCase();
+  return lc.startsWith("edit!") || lc.startsWith("r/");
 }

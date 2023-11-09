@@ -18,7 +18,8 @@ export function postRank(id: string, guild: string): string {
 }
 
 export function postLeaderboard(guild: string, page: number): { text: string, footer: string } {
-  const [nativeSorted, raihaSorted] = [sortLeaderboard(leaderboards.Native[guild]), sortLeaderboard(leaderboards.Raiha[guild])]
+  const nativeSorted = sortLeaderboard(leaderboards.Native[guild]);
+  const raihaSorted = sortLeaderboard(leaderboards.Raiha[guild]);
   return {
     text: `__**Native**__\n${generateText(nativeSorted, 0, page, 5)}\n` +
       `__**Raiha**__\n${generateText(raihaSorted, 0, page, 5)}`,
@@ -33,8 +34,8 @@ export async function postLoserboard(guild: string, page: number) {
 function generateText(leaderboard: SortedLeaderboard, startIndex: number, page: number, pageLength: number): string {
   const startPosition = startIndex + ((page - 1) * pageLength);
   if (leaderboard.length == 0 || leaderboard.length < startPosition) return 'No results';
-  return leaderboard.slice(startIndex, startIndex + pageLength).reduce((a, { user, value }, i) =>
-    a + `${i !== startPosition ? '\n' : ''}${i + 1}. <@${user}> - ${value}`, "")
+  return leaderboard.slice(startIndex, startIndex + pageLength)
+    .reduce((a, { user, value }, i) => a + `${i !== startPosition ? '\n' : ''}${i + 1}. <@${user}> - ${value}`, "")
 }
 
 export const sortLeaderboard = (leaderboard: Leaderboard): SortedLeaderboard =>

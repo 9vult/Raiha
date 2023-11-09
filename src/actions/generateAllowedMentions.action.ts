@@ -2,7 +2,7 @@ import { Message, MessageMentionOptions } from "discord.js";
 
 /**
  * Generate a list of allowed mentions
- * @param mentions [[Users], [Roles]]
+ * @param input [[Users], [Roles]] or Message<true>
  * @return MessageMentionOptions object
  */
 export default function generateAllowedMentions(input?: [string[], string[]] | Message<true>): MessageMentionOptions {
