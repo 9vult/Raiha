@@ -34,7 +34,7 @@ export default async function generateAIDescription(imageUrl: string, features: 
     const result: DescriptionError = await response.json();
     return `Request failed. (${response.status}) - ${result.error.code}: ${result.error.message}`;
   } catch (err) {
-    return `Request failed. (${response.status})`;
+    return `Request failed. (${response?.status})`;
   }
   
   const result: DescriptionResults = await response.json();
