@@ -77,6 +77,11 @@ export default function() {
   });
 
   commands?.create({
+    name: 'edithelp',
+    description: 'Editing Raiha messages'
+  });
+
+  commands?.create({
     name: 'why',
     description: 'Why use alt text?'
   });

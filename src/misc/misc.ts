@@ -5,11 +5,13 @@ export const longHelp = `**Adding Alt Text Natively**\n1. Upload and attach an i
 
 export const whyText = `Alternative Text (alt text) is a text description of an image that is generally read by a screen reader to allow the visually impared to understand the context of an image. It may also benefit people with processing disorders or impaired mental processing capabilities.\nAdditionally, alt text is beneficial even outside the realm of accessibility—on Discord, alt text is indexed and searchable, allowing you to search for images quickly and easily!`;
 
-export const hintText = "Hi, it looks like you might be new to adding alt text with Raiha.\n" + shortHelpBase + "\nFor more details, `/help`. For why, `/why`.\n**To see this server's alt text rules, `/altrules`.**\nIf you would like to be reminded on Raiha usage in the future, `/usersetting Reminder YES`.";
+export const hintText = "Hi, it looks like you might be new to adding alt text with Raiha.\n" + shortHelpBase + "\nFor more details, `/help` and `/edithelp`. For why, `/why`.\n**To see this server's alt text rules, `/altrules`.**\nIf you would like to be reminded on Raiha usage in the future, `/usersetting Reminder YES`.";
 
 export const reminderText = "Hi, you asked me to remind you on Raiha usage—Here's a TL;DR:\n" + shortHelpBase;
 
-export const shortHelp = "Here are the basics of using Raiha:\n" + shortHelpBase + "\nFor more in-depth help, `/longhelp`. For why, `/why`.\n**To see this server's alt text rules, `/altrules`.**\nIf you would like to be reminded on Raiha usage in the future, `/usersetting Reminder YES`.";
+export const shortHelp = "Here are the basics of using Raiha:\n" + shortHelpBase + "\nAlso see `/edithelp`. For more in-depth help, `/longhelp`. For why, `/why`.\n**To see this server's alt text rules, `/altrules`.**\nIf you would like to be reminded on Raiha usage in the future, `/usersetting Reminder YES`.";
+
+export const editHelp = "Editing a reposted message is easy! Just reply to the message.\nTo edit a word or phrase, use the `sed`-like syntax: `r/original phrase/new phrase`.\nTo replace the message outright, use `edit! New message body here`.\nTo delete, reply with `delete!`.\n\nPlease note that the editing commands onky work if the message already had a body.";
 
 export const expiry = (dialogue: string, seconds: number) => {
   let currentTime = Math.round(Date.now() / 1000);

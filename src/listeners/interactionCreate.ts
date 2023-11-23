@@ -1,7 +1,7 @@
 import { EmbedBuilder, Message, GuildMemberRoleManager, Interaction, GuildMember } from "discord.js";
 import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
-import { expiry, longHelp, shortHelp, whyText } from '../misc/misc';
+import { expiry, editHelp, longHelp, shortHelp, whyText } from '../misc/misc';
 import { VERSION, db, leaderboards } from '../raiha';
 import { checkIsOP } from "../actions/checkIsOP.action";
 
@@ -165,6 +165,18 @@ export default async function (interaction: Interaction) {
       .then(theReply => {
         setTimeout(() => theReply.delete(), expireTime * 1000);
       });
+    return;
+  }
+
+  if (commandName === 'edithelp') {
+    const expireTime = 25;
+    const embed = new EmbedBuilder()
+      .setTitle(`Raiha Help (Editing & Deleting)`)
+      .setDescription(expiry(editHelp, expireTime))
+      .setColor(0xd797ff);
+
+    await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
+      .then(theReply => setTimeout(() => theReply.delete(), expireTime * 1000));
     return;
   }
 

@@ -305,8 +305,10 @@ const getAltPosition = (message: Message<boolean>): Array<number> => {
   let comIndex = lc.search(/\br!/);    // r!
   let altIndex = lc.search(/\balt:/);  // alt:
   let idIndex = lc.search(/\bid:/);    // id:
+  let aliasIndex = lc.search(/\!r/);    // !r alias
 
   if (comIndex !== -1) return [comIndex, comIndex + 2]
+  if (aliasIndex !== -1) return [aliasIndex, aliasIndex + 2]
   else if (altIndex !== -1) return [altIndex, altIndex + 4]
   else if (idIndex !== -1) return [idIndex, idIndex + 3]
   return [-1];
