@@ -125,11 +125,16 @@ export default async function (interaction: Interaction) {
     const specifiedSetting = options.getString('setting')!.valueOf();
     const specifiedOption = options.getString('option')!.valueOf() == 'YES'
 
+    let ref;
     switch (specifiedSetting) {
       case 'Reminder':
-        const ref = db.ref(`/UserSettings/${user.id}`).child('Reminder');
+        ref = db.ref(`/UserSettings/${user.id}`).child('Reminder');
         ref.set(specifiedOption);
         break;
+      case 'ActivationFailure':
+        ref = db.ref(`/UserSettings/${user.id}`).child('ActivationFailure');
+        ref.set(specifiedOption);
+          break;
       default:
         break;
     }

@@ -23,7 +23,8 @@ export interface Configuration {
 }
 
 export interface UserSettings {
-  Reminder: boolean
+  Reminder: boolean,
+  ActivationFailure: boolean
 } 
 
 export interface Data {

@@ -9,6 +9,7 @@ import { react } from "../actions/react.action";
 import { sendError } from "../actions/sendError.action";
 import { informNewUser } from "../actions/informNewUser.action";
 import { remindUser } from "../actions/remindUser.action";
+import { activationFailure } from "../actions/activationFailure.action";
 import { leaderboards, db, CLIENT } from '../raiha';
 import { checkIsOP } from "../actions/checkIsOP.action";
 import { expiry } from "../misc/misc";
@@ -44,6 +45,7 @@ export default async function (message: Message) {
       for (let alt of altTexts) {
         if (alt.trim().length === 0) {
           await react(message, 'ERR_MISMATCH');
+          await activationFailure(message);
           const ref2 = db.ref(`/Leaderboard/Loserboard/${message.guild!.id}`).child(message.author.id);
           ref2.set(ServerValue.increment(1));
           return;
@@ -51,6 +53,7 @@ export default async function (message: Message) {
       }
       if (altTexts.length !== message.attachments.size) {
         await react(message, 'ERR_MISMATCH');
+        await activationFailure(message);
         return;
       }
       for (let alt of altTexts) {
@@ -180,6 +183,7 @@ export default async function (message: Message) {
     if (!message.reference) {
       // Trigger message is not a reply
       await react(message, 'ERR_NOT_REPLY');
+      await activationFailure(message);
       return;
     }
     // ----- THIS IS A REPLY TRIGGER (Scenario 2) -----
@@ -191,11 +195,13 @@ export default async function (message: Message) {
     for (let alt of altTexts) {
       if (alt.trim().length === 0) {
         await react(message, 'ERR_MISMATCH');
+        await activationFailure(message);
         return;
       }
     }
     if (altTexts.length !== op.attachments.size) {
       await react(message, 'ERR_MISMATCH');
+      await activationFailure(message);
       return;
     }
     for (let alt of altTexts) {
