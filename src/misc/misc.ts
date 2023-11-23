@@ -11,7 +11,7 @@ export const reminderText = "Hi, you asked me to remind you on Raiha usage—Her
 
 export const shortHelp = "Here are the basics of using Raiha:\n" + shortHelpBase + "\nAlso see `/edithelp`. For more in-depth help, `/longhelp`. For why, `/why`.\n**To see this server's alt text rules, `/altrules`.**\nIf you would like to be reminded on Raiha usage in the future, `/usersetting Reminder YES`.";
 
-export const editHelp = "Editing a reposted message is easy! Just reply to the message.\nTo edit a word or phrase, use the `sed`-like syntax: `r/original phrase/new phrase`.\nTo replace the message outright, use `edit! New message body here`.\nTo delete, reply with `delete!`.\n\nPlease note that the editing commands onky work if the message already had a body.";
+export const editHelp = "Editing a reposted message is easy! Just reply to the message.\nTo edit a word or phrase, use the `sed`-like syntax: `r/original phrase/new phrase`.\nTo replace the message outright, use `edit! New message body here`.\nTo delete, reply with `delete!`.\n\nPlease note that the editing commands only work if the message already had a body.";
 
 export const expiry = (dialogue: string, seconds: number) => {
   let currentTime = Math.round(Date.now() / 1000);
