@@ -137,7 +137,8 @@ export default function() {
         type: 3, // STRING
         choices: [
           { name: 'Reminder', value: 'Reminder' },
-          { name: 'Activation Failure', value: 'ActivationFailure' }
+          { name: 'Activation Failure', value: 'ActivationFailure' },
+          { name: 'Auto', value: 'AutoMode' }
         ]
       },
       {

@@ -135,6 +135,10 @@ export default async function (interaction: Interaction) {
         ref = db.ref(`/UserSettings/${user.id}`).child('ActivationFailure');
         ref.set(specifiedOption);
           break;
+      case 'AutoMode':
+        ref = db.ref(`/UserSettings/${user.id}`).child('AutoMode');
+        ref.set(specifiedOption);
+          break;
       default:
         break;
     }

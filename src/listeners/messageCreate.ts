@@ -15,10 +15,9 @@ import { checkIsOP } from "../actions/checkIsOP.action";
 import { expiry } from "../misc/misc";
 
 export default async function (message: Message) {
-  const config = leaderboards.Configuration;
   // Prereqs
   if (message.author.bot || !message.inGuild()) return;
-  let msglc = message.content.toLowerCase();
+  const autoMode = (leaderboards.UserSettings?.[message.author.id]?.AutoMode);
 
   let altAuthor = message.author.id;
   let opAuthor = '';
@@ -38,10 +37,18 @@ export default async function (message: Message) {
       }
     }
     let altStartIndex = getAltPosition(message);
-    if (altStartIndex[0] !== -1) {
+    let shouldUseAutoMode = (!hasGoodAttachments && autoMode)
+    if (altStartIndex[0] !== -1 || shouldUseAutoMode) {
       // ----- THIS IS A SELF-TRIGGER (Scenario 1) -----
+      // OR Auto-Mode!
       opAuthor = message.author.id;
-      let altTexts = parseAltText(message, altStartIndex[1]);
+      let altTexts: string[];
+      if (altStartIndex[0] !== -1) altTexts = parseAltText(message, altStartIndex[1]);
+      else /* Auto Mode Zone */ {
+        altTexts = autoModeGenerator(message);
+        altStartIndex[0] = message.content.length;
+        altStartIndex[1] = message.content.length;
+      }
       for (let alt of altTexts) {
         if (alt.trim().length === 0) {
           await react(message, 'ERR_MISMATCH');
@@ -287,6 +294,24 @@ const isMissingAltText = (message: Message<boolean>): boolean => {
     }
   }
   return false;
+}
+
+/**
+ * Generate auto mode
+ * @param message Incoming message to check
+ */
+const autoModeGenerator = (message: Message<boolean>): string[] => {
+  let altTexts: string[] = [];
+  for (let attachment of message.attachments) {
+    let file = attachment[1];
+    if (!file.contentType?.startsWith('image')) altTexts.push('-');
+    if (file.description === null || file.description === undefined || file.description.trim() === '') {
+      altTexts.push('$$ocr');
+    } else {
+      altTexts.push(file.description);
+    }
+  }
+  return altTexts;
 }
 
 /**

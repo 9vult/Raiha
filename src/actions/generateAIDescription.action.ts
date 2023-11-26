@@ -27,7 +27,7 @@ export const generateAIDescription = async (imageUrl: string, doCaption: boolean
     const result: any = await response.json();
     const caption = `${result['captionResult']['text']} (${result['captionResult']['confidence'].toFixed(3)})`;
     const text = result['readResult']['content'];
-    const description = `${caption}: ${text}`.replace('\n', ' \n');
+    const description = text.length > 0 ? `${caption}: ${text}`.replace('\n', ' \n') : caption;
     return description;
   }
   if (response.ok && !doCaption && doOCR) {
