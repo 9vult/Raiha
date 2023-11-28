@@ -17,6 +17,7 @@ export async function checkIsOP(message: Message<boolean>, caller: User) {
     if (!ref.exists()) {
       if (prevRefVal && prevRefVal['OP'] == caller.id)
         isOP = true; // experimental(?) to fix deletion not working on after-the-fact alts
+        opData = prevRefVal;
       break;
     }
     const refVal = await ref.val();

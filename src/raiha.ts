@@ -14,7 +14,7 @@ import { DataSnapshot } from '@firebase/database-types';
 const firebase = require('../firebase.json');
 require('dotenv').config();
 
-export const VERSION = "2.4.0";
+export const VERSION = "2.5.1";
 
 admin.initializeApp({
   credential: admin.credential.cert(firebase),
