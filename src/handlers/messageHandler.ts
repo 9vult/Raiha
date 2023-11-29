@@ -5,6 +5,8 @@ import { generateAllowedMentions } from "../actions/generateAllowedMentions.acti
 import { areNotImages, doBotTriggeredAltText, fail, getAltPosition, getParent, hasAltCommand, hasAttachments, isMissingAltText, isReply, userHasAutoModeEnabled, wantsDelete, wantsEdit, wasPostedByBot } from "../misc/messageHandlerHelper";
 import { expiry } from "../misc/misc";
 import { db } from "../raiha";
+import { informNewUser } from "../actions/informNewUser.action";
+import { remindUser } from "../actions/remindUser.action";
 
 export async function handleMessage(msg: Message<true>) {
   if (msg.author.bot || !msg.inGuild()) return;
@@ -36,6 +38,8 @@ async function noBotCallBranch(msg: Message<true>) {
     if (userHasAutoModeEnabled(msg.author.id)) {
       return await doBotTriggeredAltText(msg, msg, true);
     }
+    await informNewUser(msg);
+    await remindUser(msg);
     return await fail('ERR_MISSING_ALT_TEXT', msg, true);
   } else {
     if (!areNotImages(msg)) {
