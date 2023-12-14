@@ -19,7 +19,9 @@ export interface Configuration {
   modChannel: string
   modRole: string
   muteThreshold: 0 | number
-  specialWarnThresholds: number[]
+  specialWarnThresholds: number[],
+  placeInMessageBodyMode: "off" | string,
+  disabledTriggers: string[] | undefined
 }
 
 export interface UserSettings {
@@ -35,4 +37,9 @@ export interface Data {
   Statistics: Statistics
   Configuration: Record<string, Configuration>
   UserSettings: Record<string, UserSettings>
+}
+
+export interface AiResult {
+  desc: string,
+  ocr: string
 }

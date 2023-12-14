@@ -4,7 +4,7 @@ import { checkIsOP } from "../actions/checkIsOP.action";
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
 import { areNotImages, doBotTriggeredAltText, fail, getAltPosition, getParent, hasAltCommand, hasAttachments, isMissingAltText, isReply, userHasAutoModeEnabled, wantsDelete, wantsEdit, wasPostedByBot } from "../misc/messageHandlerHelper";
 import { expiry } from "../misc/misc";
-import { db } from "../raiha";
+import { db, leaderboards } from "../raiha";
 import { informNewUser } from "../actions/informNewUser.action";
 import { remindUser } from "../actions/remindUser.action";
 
@@ -22,12 +22,17 @@ export async function handleMessage(msg: Message<true>) {
 }
 
 async function botCallBranch(msg: Message<true>) {
+  // Has attachments - Self trigger mode
   if (hasAttachments(msg)) return await doBotTriggeredAltText(msg, msg, false);
   // No attachments
-  if (!isReply(msg)) return await fail('ERR_NOT_REPLY', msg, false);
+  // Starts with trigger but is not a reply - fail
+  const dt = leaderboards.Configuration[msg.guild.id].disabledTriggers;
+  if (getAltPosition(msg, dt)[0] == 0 && !isReply(msg)) return await fail('ERR_NOT_REPLY', msg, false);
+  // Not a reply and the trigger is not at the start: ignore
+  if (!isReply(msg)) return;
+  // Reply trigger mode
   const parent = await getParent(msg);
   if (!hasAttachments(parent)) return await fail('ERR_NOT_REPLY', msg, false);
-  if (getAltPosition(msg)[0] !== 0) return; // Reply trigger must be at start of message
   return await doBotTriggeredAltText(msg, parent, false);
 }
 

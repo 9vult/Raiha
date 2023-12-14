@@ -46,7 +46,9 @@ Finally, in the firebase database, set the server configuration at `/Configurati
   modChannel: string (channelID),
   modRole: string (roleName),
   muteThreshold: number (0 to disable),
-  specialWarnThresholds: number[] (ignores enableWarnings value)
+  specialWarnThresholds: number[] (ignores enableWarnings value),
+  placeInMessageBodyMode: "off" | "all" | "description",
+  disabledTriggers: string[] | undefined
 }
 ```
 

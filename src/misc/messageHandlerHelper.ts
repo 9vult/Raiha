@@ -7,6 +7,7 @@ import { getMentions } from "../actions/getMentions.action";
 import { react } from "../actions/react.action";
 import { sendError } from "../actions/sendError.action";
 import { CLIENT, db, leaderboards } from "../raiha";
+import { AiResult } from "./types";
 
 /**
  * Check if this message contains a trigger word
@@ -14,20 +15,29 @@ import { CLIENT, db, leaderboards } from "../raiha";
  * @returns True if there is a trigger word
  */
 export function hasAltCommand(msg: Message<true>): boolean {
-  return getAltPosition(msg)[0] !== -1;
+  const disabledTriggers = leaderboards.Configuration[msg.guild.id].disabledTriggers;
+  return getAltPosition(msg, disabledTriggers)[0] !== -1;
 }
 
 /**
  * Get the location of the trigger word
  * @param msg Incoming message to check
+ * @param disabledTriggers Guild-disabled triggers
  * @returns Position of the end of the trigger, or [-1]
  */
-export function getAltPosition(msg: Message<true>): number[] {
+export function getAltPosition(msg: Message<true>, disabledTriggers: string[] | undefined): number[] {
   let lc = msg.content.toLowerCase();
   let rIndex = lc.search(/\br!/);    // r!
   let altIndex = lc.search(/\balt:/);  // alt:
   let idIndex = lc.search(/\bid:/);    // id:
   let altRIndex = lc.search(/\!r/);    // !r alias
+
+  if (disabledTriggers && disabledTriggers.length > 0) {
+    if (disabledTriggers.indexOf("r!") !== -1) rIndex = -1;
+    if (disabledTriggers.indexOf("r!") !== -1) altRIndex = -1;
+    if (disabledTriggers.indexOf("alt:") !== -1) altIndex = -1;
+    if (disabledTriggers.indexOf("id:") !== -1) idIndex = -1;
+  }
 
   if (rIndex !== -1) return [rIndex, rIndex + 2]
   if (altRIndex !== -1) return [altRIndex, altRIndex + 2]
@@ -133,27 +143,36 @@ export function parseAltText(msg: Message<true>, startIndex: number): string[] {
  */
 export async function applyAltText(msg: Message<true>, altTexts: string[]) {
   let fixedFiles: Array<Attachment> = [];
+  let altTextResults: AiResult[] = [];
   let index = 0;
   for (let attachment of msg.attachments) {
     if (altTexts[index].trim() == "$$") {
       const imageUrl = attachment[1].url;
-      const desc = await generateAIDescription(imageUrl, true, false);
+      const ai = await generateAIDescription(imageUrl, true, false);
+      const desc = ai.desc;
+      altTextResults.push(ai);
       altTexts[index] = desc.substring(0, 1000);
     }
     else if (altTexts[index].trim() == "$$ocr") {
       const imageUrl = attachment[1].url;
-      const desc = await generateAIDescription(imageUrl, true, true);
+      const ai = await generateAIDescription(imageUrl, true, true);
+      altTextResults.push(ai);
+      const desc = ai.ocr.length > 0 ? `${ai.desc}: ${ai.ocr}`.replace('\n', ' \n') : ai.desc;
       altTexts[index] = desc.substring(0, 1000);
     }
     else if (altTexts[index].trim().endsWith("$$ocr")) {
       const imageUrl = attachment[1].url;
-      const desc = await generateAIDescription(imageUrl, false, true);
+      const ai = await generateAIDescription(imageUrl, false, true);
+      altTextResults.push(ai);
+      const desc = ai.ocr;
       altTexts[index] = (altTexts[index].replace(/\s\$\$ocr|\$\$ocr/, `: ${desc}`)).substring(0, 1000); // regex matches " $$ocr" and "$$ocr"
+    } else {
+      altTextResults.push({ desc: altTexts[index], ocr: "" });
     }
     attachment[1].description = altTexts[index++];
     fixedFiles.push(attachment[1]);
   }
-  return fixedFiles;
+  return { files: fixedFiles, alts: altTextResults };
 }
 
 /**
@@ -210,7 +229,8 @@ export function areNotImages(message: Message<true>): boolean {
  */
 export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Message<true>, auto: boolean) {
   const inline = (cmdMsg.id === imgMsg.id);
-  const altStartIndex = getAltPosition(cmdMsg);
+  const dt = leaderboards.Configuration[cmdMsg.guild.id].disabledTriggers;
+  const altStartIndex = getAltPosition(cmdMsg, dt);
   const altAuthor = cmdMsg.author.id;
   const opAuthor = imgMsg.author.id;
   let msgParentID = '0';
@@ -226,11 +246,30 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
   }
   if (altTexts.length !== imgMsg.attachments.size) return await fail('ERR_MISMATCH', cmdMsg, inline);
 
-  let fixedFiles = await applyAltText(imgMsg, altTexts);
+  const applied = await applyAltText(imgMsg, altTexts);
+  let fixedFiles = applied.files;
   let mentions = getMentions(imgMsg);
   let allowedMentions = generateAllowedMentions(mentions);
   let sentMsg;
   let repostContent;
+
+  const pimbm = leaderboards.Configuration[imgMsg.guild.id].placeInMessageBodyMode;
+  let pimbmMessage: string;
+  switch (pimbm) {
+    case "off":
+      pimbmMessage = "";
+      break;
+    case "all":
+       pimbmMessage = applied.alts.reduce((acc, cur) => acc += (cur.ocr.length > 0 ? `ID: ${cur.desc}: ${cur.ocr}` : `ID: ${cur.desc}`) + '\n', '').trim();
+       break;
+    case "description":
+      pimbmMessage = applied.alts.reduce((acc, cur) => acc += `ID: ${cur.desc}` + '\n', '').trim();
+      break;
+    default:
+      pimbmMessage = "";
+      break;
+  }
+
   if (!inline) {
     // Reply
     if (opAuthor == altAuthor) repostContent = `_From <@${opAuthor}>${imgMsg.content != '' ? ':_\n\n' + imgMsg.content : '._'}`;
@@ -239,6 +278,8 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
     // Inline
     repostContent = `_From <@${imgMsg.author.id}>${altStartIndex[0] > 0 ? ':_\n\n' + imgMsg.content.substring(0, altStartIndex[0]) : '._'}`
   }
+
+  if (pimbmMessage.length > 0) repostContent = repostContent + `\n\n${pimbmMessage}`;
 
   const payload = {
     files: fixedFiles,
