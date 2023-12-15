@@ -1,6 +1,6 @@
 # Raiha - A Discord Accessibility Bot
 
-Raiha is a simple, easy-to use bot whose core focus is making alt text easier to write and use. Here are some of the things you can achieve with Raiha:
+Raiha is a simple, easy-to use bot whose core focus is making alt text easier to write and use.
 
 ## Major Features
 
@@ -34,7 +34,7 @@ Why _not_ gamify accessibility? Raiha comes with three leaderboards:
 - **Raiha** - This leaderboard keeps track of the number of Raiha reposts triggered
 - **Loserboard** - This leaderboard keeps track of the number of messages sent without alt text. Using Raiha to repost your own message will decrement this board.
 
-A bit more on the Loserboard: The loserboard can be configured to notify moderators in a mod channel when a user's Loserboard score reaches certain thresholds. What you do with this information is up to you, one suggestion, however, is an Image Mute.
+A bit more on the Loserboard: The loserboard can be configured to notify moderators in a mod channel when a user's Loserboard score reaches certain thresholds. What you do with this information is up to you. One suggestion: an Image Mute.
 
 ## User Settings
 
@@ -48,7 +48,7 @@ There are several settings that users can set on themselves. Each user setting i
 
 All Raiha reposts begin with a trigger. Currently-accepted triggers are `r!` (alias: `!r`), `alt:`, and `id:`. Servers can disable individual triggers if they want/need to.
 
-- **Add alt text to an existing message** - _Reply_ to the message beginning with a trigger, then the alt text you want to apply
+- **Add alt text to an existing message** - _Reply_ to the message, beginning with a trigger, then the alt text you want to apply
     - ex: `r! Tabby kitten sitting in a sink`
 - **Add alt text to a new message** - Write a message as normal, then add a trigger and alt text at the end
     - ex: `I had a lot of fun at the beach yesterday. id: sunset over the ocean`
@@ -63,6 +63,7 @@ All Raiha reposts begin with a trigger. Currently-accepted triggers are `r!` (al
 - **Edit Reposted Message**
     - **Whole message** - Reply to the message with the trigger word `edit!` followed by the new message body
     - **Typo correction** - Reply to the message with the sed-like syntax `r/old/new`, where `old` will be replaced by `new`
+        - ex: `This is my mom's dog, Bingo.` + `r/mom/dad` = `This is my dad's dog, Bingo.`
     - **NOTE**: Edits can only be performed on messages with a message body. You cannot retroactively add a message body.
 - **Delete Reposted Message** - Reply to the message with the trigger word `delete!`
 
@@ -71,19 +72,22 @@ Edit and Delete commands will only work if you are the original poster of the me
 ## Setup
 
  - Raiha requires a [Firebase Real-Time Database](https://firebase.google.com/docs/database) for logging and leaderboards. The base tier is free, and it is highly unlikely Raiha will ever generate enough data to exceed the base tier.
- - Raiha also requires an [Azure Cognitive Vision Service](https://learn.microsoft.com/en-us/azure/cognitive-services/custom-vision-service/limits-and-quotas) instance. The base tier is free, and allows for 20 requests per minute, 5000 per month.
+ - Raiha also requires an [Azure Cognitive Vision Service](https://learn.microsoft.com/en-us/azure/cognitive-services/custom-vision-service/limits-and-quotas) instance. The base tier is free, and allows for 20 requests per minute, and 5000 per month.
 
-Create a `.env` file in the project root and add the following to it: 
+1. Clone the Raiha repository
+2. Create a [Discord Bot Application](https://discord.com/developers/applications) and note the API token
+3. Set up a Firebase project with a Realtime Database
+4. Download the `firebase.json` file from Firebase (hint: create an app in the firebase console)
+5. Create an Azure account, set up Azure Vision Services, and note the URL for it
+6. Create a `.env` file in the project root and add the following to it: 
 
  - `TOKEN=[yourtoken]`
  - `DATABASE_URL=[databaseurl]`
- - `MOD_CHANNEL=[channelid]`
  - `CV_API_KEY=[yourkey]`
  - `CV_ENDPOINT=[endpoint, with trailing /]`
 
-Then, place your `firebase.json` in the `/src/` folder.
-
-Finally, in the firebase database, set the server configuration at `/Configuration/[guildID]`:
+7. Place your `firebase.json` in the `/src/` folder.
+8. In the firebase database, set the guild configuration for your server at `/Configuration/[guildID]`:
 
 ```typescript
 {
