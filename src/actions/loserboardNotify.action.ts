@@ -18,18 +18,12 @@ export async function loserboardNotify(incoming: Record<string, Leaderboard>) {
       if (!incomingValue || incomingValue <= value) continue;
 
       if (incomingValue != 0 && (incomingValue % muteThreshold == 0)) {
-        await new Promise(r => setTimeout(r, 60_000));
-        if (incomingValue <= value)
           muteNotify(modChannel, user, incomingValue);
       }
       if (enableWarnings && incomingValue != 0 && ((incomingValue + 5) % muteThreshold == 0)) {
-        await new Promise(r => setTimeout(r, 60_000));
-        if (incomingValue <= value)
           warnNotify(modChannel, user, incomingValue);
       }
       if (specialWarnThresholds && specialWarnThresholds.includes(incomingValue)) { // Not bound to enableWarnings
-        await new Promise(r => setTimeout(r, 60_000));
-        if (incomingValue <= value)
           warnNotify(modChannel, user, incomingValue);
       }
     }
