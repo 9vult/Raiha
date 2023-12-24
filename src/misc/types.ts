@@ -21,7 +21,8 @@ export interface Configuration {
   muteThreshold: 0 | number
   specialWarnThresholds: number[],
   placeInMessageBodyMode: "off" | string,
-  disabledTriggers: string[] | undefined
+  disabledTriggers: string[] | undefined,
+  openai: boolean
 }
 
 export interface UserSettings {

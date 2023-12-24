@@ -8,6 +8,7 @@ import { react } from "../actions/react.action";
 import { sendError } from "../actions/sendError.action";
 import { CLIENT, db, leaderboards } from "../raiha";
 import { AiResult } from "./types";
+import { Gpt } from "../actions/gpt.action";
 
 /**
  * Check if this message contains a trigger word
@@ -147,25 +148,52 @@ export async function applyAltText(msg: Message<true>, altTexts: string[]) {
   let index = 0;
   for (let attachment of msg.attachments) {
     if (altTexts[index].trim() == "$$") {
-      const imageUrl = attachment[1].url;
-      const ai = await generateAIDescription(imageUrl, true, false);
-      const desc = ai.desc;
-      altTextResults.push(ai);
-      altTexts[index] = desc.substring(0, 1000);
+      if (attachment[1].contentType == "image/gif") {
+        const gifResult: AiResult = { desc: "gif", ocr: "" }
+        altTextResults.push(gifResult);
+        altTexts[index] = gifResult.desc;
+      } else {
+        const imageUrl = attachment[1].url;
+        const openaiEnabled = leaderboards.Configuration[msg.guild.id].openai;
+        let ai: AiResult;
+        if (openaiEnabled) {
+          ai = { desc: await Gpt(imageUrl) ?? "", ocr: "" }
+        } else {
+          ai = await generateAIDescription(imageUrl, true, false);
+        }
+        const desc = ai.desc;
+        altTextResults.push(ai);
+        altTexts[index] = desc.substring(0, 1000);
+      }
     }
     else if (altTexts[index].trim() == "$$ocr") {
-      const imageUrl = attachment[1].url;
-      const ai = await generateAIDescription(imageUrl, true, true);
-      altTextResults.push(ai);
-      const desc = ai.ocr.length > 0 ? `${ai.desc}: ${ai.ocr}`.replace('\n', ' \n') : ai.desc;
-      altTexts[index] = desc.substring(0, 1000);
+      if (attachment[1].contentType == "image/gif") {
+        const gifResult: AiResult = { desc: "gif", ocr: "" }
+        altTextResults.push(gifResult);
+        altTexts[index] = gifResult.desc;
+      } else {
+        const imageUrl = attachment[1].url;
+        const openaiEnabled = leaderboards.Configuration[msg.guild.id].openai;
+        let ai: AiResult;
+        if (openaiEnabled) {
+          ai = { desc: await Gpt(imageUrl) ?? "", ocr: "" }
+        } else {
+          ai = await generateAIDescription(imageUrl, true, true);
+          altTextResults.push(ai);
+        }
+        const desc = ai.ocr.length > 0 ? `${ai.desc}: ${ai.ocr}`.replace('\n', ' \n') : ai.desc;
+        altTextResults.push(ai);
+        altTexts[index] = desc.substring(0, 1000);
+      }
     }
     else if (altTexts[index].trim().endsWith("$$ocr")) {
-      const imageUrl = attachment[1].url;
-      const ai = await generateAIDescription(imageUrl, false, true);
-      altTextResults.push(ai);
-      const desc = ai.ocr;
-      altTexts[index] = (altTexts[index].replace(/\s\$\$ocr|\$\$ocr/, `: ${desc}`)).substring(0, 1000); // regex matches " $$ocr" and "$$ocr"
+      if (attachment[1].contentType != "image/gif") {
+        const imageUrl = attachment[1].url;
+        const ai = await generateAIDescription(imageUrl, false, true);
+        altTextResults.push(ai);
+        const desc = ai.ocr;
+        altTexts[index] = (altTexts[index].replace(/\s\$\$ocr|\$\$ocr/, `: ${desc}`)).substring(0, 1000); // regex matches " $$ocr" and "$$ocr"
+      }
     } else {
       altTextResults.push({ desc: altTexts[index], ocr: "" });
     }
