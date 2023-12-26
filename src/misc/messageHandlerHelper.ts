@@ -274,6 +274,7 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
   }
   if (altTexts.length !== imgMsg.attachments.size) return await fail('ERR_MISMATCH', cmdMsg, inline);
 
+  await cmdMsg.react('✅');
   const applied = await applyAltText(imgMsg, altTexts);
   let fixedFiles = applied.files;
   let mentions = getMentions(imgMsg);
