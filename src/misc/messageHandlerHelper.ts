@@ -305,7 +305,11 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
     else repostContent = `_From <@${opAuthor}> with alt text by <@${altAuthor}>${imgMsg.content != '' ? ':_\n\n' + imgMsg.content : '._'}`;
   } else {
     // Inline
-    repostContent = `_From <@${imgMsg.author.id}>${altStartIndex[0] > 0 ? ':_\n\n' + imgMsg.content.substring(0, altStartIndex[0]) : '._'}`
+    // 
+    if (auto && altStartIndex[0] < 0)
+      repostContent = `_From <@${imgMsg.author.id}>${imgMsg.content.trim().length > 0 ? ':_\n\n' + imgMsg.content.trim() : '._'}`
+    else
+      repostContent = `_From <@${imgMsg.author.id}>${altStartIndex[0] > 0 ? ':_\n\n' + imgMsg.content.substring(0, altStartIndex[0]) : '._'}`
   }
 
   if (pimbmMessage.length > 0) repostContent = repostContent + `\n\n${pimbmMessage}`;
