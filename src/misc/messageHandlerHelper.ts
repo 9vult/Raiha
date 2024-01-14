@@ -9,6 +9,7 @@ import { sendError } from "../actions/sendError.action";
 import { CLIENT, db, leaderboards } from "../raiha";
 import { AiResult } from "./types";
 import { Gpt } from "../actions/gpt.action";
+import { AutoMode } from "./misc";
 
 /**
  * Check if this message contains a trigger word
@@ -215,8 +216,13 @@ export function bumpStats() {
  * @param id Author ID
  * @returns True if Auto Mode is enabled
  */
-export function userHasAutoModeEnabled(id: string) {
-  return leaderboards.UserSettings?.[id]?.AutoMode;
+export function userHasAutoModeEnabled(id: string): AutoMode {
+  let user =  leaderboards.UserSettings?.[id];
+  if (user == undefined) return AutoMode.IMPLICIT;
+  let amSetting = user.AutoMode;
+  if (amSetting == undefined) return AutoMode.IMPLICIT;
+  
+  return amSetting ? AutoMode.ON : AutoMode.OFF;
 }
 
 /**

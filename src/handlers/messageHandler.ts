@@ -3,7 +3,7 @@ import { ServerValue } from "firebase-admin/database";
 import { checkIsOP } from "../actions/checkIsOP.action";
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
 import { areNotImages, doBotTriggeredAltText, fail, getAltPosition, getParent, hasAltCommand, hasAttachments, isMissingAltText, isReply, userHasAutoModeEnabled, wantsDelete, wantsEdit, wasPostedByBot } from "../misc/messageHandlerHelper";
-import { expiry } from "../misc/misc";
+import { AutoMode, expiry } from "../misc/misc";
 import { db, leaderboards } from "../raiha";
 import { informNewUser } from "../actions/informNewUser.action";
 import { remindUser } from "../actions/remindUser.action";
@@ -40,8 +40,10 @@ async function noBotCallBranch(msg: Message<true>) {
   if (!hasAttachments(msg)) return;
   
   if (isMissingAltText(msg)) {
-    if (userHasAutoModeEnabled(msg.author.id)) {
-      return await doBotTriggeredAltText(msg, msg, true);
+    const autoModeMode = userHasAutoModeEnabled(msg.author.id);
+    if ([AutoMode.ON, AutoMode.IMPLICIT].includes(autoModeMode)) {
+      if (autoModeMode == AutoMode.ON || (leaderboards.Configuration[msg.guild.id].autoModeOptOut && autoModeMode == AutoMode.IMPLICIT))
+        return await doBotTriggeredAltText(msg, msg, true);
     }
     await informNewUser(msg);
     await remindUser(msg);

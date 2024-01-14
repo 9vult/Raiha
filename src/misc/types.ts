@@ -22,7 +22,8 @@ export interface Configuration {
   specialWarnThresholds: number[],
   placeInMessageBodyMode: "off" | string,
   disabledTriggers: string[] | undefined,
-  openai: boolean
+  openai: boolean,
+  autoModeOptOut: boolean
 }
 
 export interface UserSettings {

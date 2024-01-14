@@ -20,3 +20,8 @@ export const expiry = (dialogue: string, seconds: number) => {
   return dialogue + `\n\n_This message will self-destruct <t:${goal}:R>._`;
 };
 
+export enum AutoMode {
+  ON,
+  OFF,
+  IMPLICIT
+}

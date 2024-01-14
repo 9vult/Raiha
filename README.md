@@ -108,8 +108,9 @@ Edit and Delete commands will only work if you are the original poster of the me
   muteThreshold: number (0 to disable),
   specialWarnThresholds: number[] (ignores enableWarnings value),
   placeInMessageBodyMode: "off" | "all" | "description",
-  disabledTriggers: string[] | undefined
-  openai: boolean
+  disabledTriggers: string[] | undefined,
+  openai: boolean,
+  autoModeOptOut: boolean
 }
 ```
 
