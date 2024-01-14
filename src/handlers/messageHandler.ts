@@ -7,6 +7,7 @@ import { AutoMode, expiry } from "../misc/misc";
 import { db, leaderboards } from "../raiha";
 import { informNewUser } from "../actions/informNewUser.action";
 import { remindUser } from "../actions/remindUser.action";
+import { informNewAutoModeOptOut } from "../actions/informNewAutoModeOptOut";
 
 export async function handleMessage(msg: Message<true>) {
   if (msg.author.bot || !msg.inGuild()) return;
@@ -42,8 +43,10 @@ async function noBotCallBranch(msg: Message<true>) {
   if (isMissingAltText(msg)) {
     const autoModeMode = userHasAutoModeEnabled(msg.author.id);
     if ([AutoMode.ON, AutoMode.IMPLICIT].includes(autoModeMode)) {
-      if (autoModeMode == AutoMode.ON || (leaderboards.Configuration[msg.guild.id].autoModeOptOut && autoModeMode == AutoMode.IMPLICIT))
+      if (autoModeMode == AutoMode.ON || (leaderboards.Configuration[msg.guild.id].autoModeOptOut && autoModeMode == AutoMode.IMPLICIT)) {
+        await informNewAutoModeOptOut(msg);
         return await doBotTriggeredAltText(msg, msg, true);
+      }
     }
     await informNewUser(msg);
     await remindUser(msg);
