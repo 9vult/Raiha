@@ -7,8 +7,9 @@ export async function informNewAutoModeOptOut(originalMessage: Message<true>) {
   const { author: { id: op }, guild: { id: server } } = originalMessage;
   const { Raiha, Configuration } = leaderboards;
   const serverAutoModeOptOut = Configuration[server].autoModeOptOut ?? false;
+  const green = Configuration[server].greenThreshold ?? 1;
 
-  if (serverAutoModeOptOut && (!Raiha[server]?.[op] || Raiha[server][op] <= 0)) {
+  if (serverAutoModeOptOut && (!Raiha[server]?.[op] || Raiha[server][op] <= green)) {
     const embed = new EmbedBuilder()
       .setTitle("Alt Text Help")
       .setDescription(expiry(autoModeOptOutHint, expireTime))

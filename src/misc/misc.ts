@@ -13,7 +13,7 @@ export const shortHelp = "Here are the basics of using Raiha:\n" + shortHelpBase
 
 export const editHelp = "Editing a reposted message is easy! Just reply to the message.\nTo edit a word or phrase, use the `sed`-like syntax: `r/original phrase/new phrase`.\nTo replace the message outright, use `edit! New message body here`.\nTo delete, reply with `delete!`.\n\nPlease note that the editing commands only work if the message already had a body.";
 
-export const autoModeOptOutHint = "This server is in Raiha AutoAlt Opt-Out mode. Your image has been reposted automatically because it did not have alt text.\nFor more information, see `/why`, `/help`, and `/altrules`.\nTo opt-out of Auto Mode, set `/usersetting auto NO`.\nThis message will not be shown to you again.";
+export const autoModeOptOutHint = "This server is in Raiha AutoAlt Opt-Out mode. Your image has been reposted automatically because it did not have alt text.\nFor more information, see `/why`, `/help`, and `/altrules`.\nTo opt-out of Auto Mode, set `/usersetting auto NO`.";
 
 export const expiry = (dialogue: string, seconds: number) => {
   let currentTime = Math.round(Date.now() / 1000);
