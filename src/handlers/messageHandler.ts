@@ -8,6 +8,8 @@ import { db, leaderboards } from "../raiha";
 import { informNewUser } from "../actions/informNewUser.action";
 import { remindUser } from "../actions/remindUser.action";
 import { informNewAutoModeOptOut } from "../actions/informNewAutoModeOptOut";
+import { urlCheck } from "../actions/urlCheck.action";
+import { urlCheckWarning } from "../actions/urlCheckWarning.action";
 
 export async function handleMessage(msg: Message<true>) {
   if (msg.author.bot || !msg.inGuild()) return;
@@ -38,6 +40,7 @@ async function botCallBranch(msg: Message<true>) {
 }
 
 async function noBotCallBranch(msg: Message<true>) {
+  if (urlCheck(msg)) urlCheckWarning(msg);
   if (!hasAttachments(msg)) return;
   
   if (isMissingAltText(msg)) {

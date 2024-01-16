@@ -15,6 +15,8 @@ export const editHelp = "Editing a reposted message is easy! Just reply to the m
 
 export const autoModeOptOutHint = "This server is in Raiha AutoAlt Opt-Out mode. Your image has been reposted automatically because it did not have alt text.\nFor more information, see `/why`, `/help`, and `/altrules`.\nTo opt-out of Auto Mode, set `/usersetting auto NO`.";
 
+export const urlWarning = "Hi! You appear to have linked to an image.\nLinking to images is convenient, but comes at the expense of accessibility as they cannot have alt text.\n**Please consider reposting your image as a direct embed so alt text can be added!**\n_If you believe this reply was sent in error, please notify <@248600185423396866>._";
+
 export const expiry = (dialogue: string, seconds: number) => {
   let currentTime = Math.round(Date.now() / 1000);
   let goal = currentTime + seconds;
