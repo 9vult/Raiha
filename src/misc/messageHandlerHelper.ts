@@ -287,9 +287,6 @@ export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMs
   for (let attachment of audioMsg.attachments) {
     let file = attachment[1];
     if (!file.contentType?.startsWith('audio')) continue;
-    if (file.duration! > (60 * 7)) {
-      cmdMsg.reply({ content: "[Sorry, but this file is too long. For practical reasons, Raiha is limited to audio files under 7 minutes long.]", allowedMentions: generateAllowedMentions() })
-    }
     let transcription = await Whisper(file.url, file.name);
     if (transcription == "") continue;
     transcriptions += `> ${transcription}\n`;
