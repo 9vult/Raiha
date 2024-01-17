@@ -2,7 +2,7 @@ import { EmbedBuilder, Message } from "discord.js";
 import { ServerValue } from "firebase-admin/database";
 import { checkIsOP } from "../actions/checkIsOP.action";
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
-import { areNotImages, doBotTriggeredAltText, fail, getAltPosition, getParent, hasAltCommand, hasAttachments, isMissingAltText, isReply, userHasAutoModeEnabled, wantsDelete, wantsEdit, wasPostedByBot } from "../misc/messageHandlerHelper";
+import { areNotImages, doBotTriggeredAltText, doBotTriggeredTranscription, fail, getAltPosition, getParent, hasAltCommand, hasAttachments, isAudioMessage, isMissingAltText, isReply, userHasAutoModeEnabled, wantsDelete, wantsEdit, wantsTranscription, wasPostedByBot } from "../misc/messageHandlerHelper";
 import { AutoMode, expiry } from "../misc/misc";
 import { db, leaderboards } from "../raiha";
 import { informNewUser } from "../actions/informNewUser.action";
@@ -18,7 +18,9 @@ export async function handleMessage(msg: Message<true>) {
     const parent = await getParent(msg);
     if (wantsEdit(msg)) return await editTriggerBranch(msg, parent);
     if (wantsDelete(msg)) return await deleteTriggerBranch(msg, parent);
+    if (wantsTranscription(msg)) return await doBotTriggeredTranscription(msg, parent);
   }
+  if (wantsTranscription(msg) || isAudioMessage(msg)) return await doBotTriggeredTranscription(msg, msg);
 
   if (hasAltCommand(msg)) return await botCallBranch(msg);
   return await noBotCallBranch(msg);

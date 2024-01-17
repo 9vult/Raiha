@@ -10,6 +10,7 @@ import { CLIENT, db, leaderboards } from "../raiha";
 import { AiResult } from "./types";
 import { Gpt } from "../actions/gpt.action";
 import { AutoMode } from "./misc";
+import { Whisper } from "../actions/whisper.action";
 
 /**
  * Check if this message contains a trigger word
@@ -111,6 +112,24 @@ export function wantsDelete(msg: Message<true>): boolean {
 
   if (delIndex !== -1) return true;
   else return false;
+}
+
+export function wantsTranscription(msg: Message<true>): boolean {
+  let lc = msg.content.toLowerCase();
+  let tIndex = lc.search(/\btranscribe\!/);    // transcribe!
+  let tsIndex = lc.search(/\bts\!/);            // ts!
+  if (tIndex === -1 && tsIndex === -1) return false;
+  return true;
+}
+
+export function isAudioMessage(msg: Message<true>): boolean {
+  if (!hasAttachments(msg)) return false;
+  for (let attachment of msg.attachments) {
+    let file = attachment[1];
+    if (!file.contentType?.startsWith('audio')) return false;
+    return (file.name == "voice-message.ogg")
+  }
+  return false;
 }
 
 /**
@@ -253,6 +272,36 @@ export function areNotImages(message: Message<true>): boolean {
     if (file.contentType?.startsWith('image')) return false;
   }
   return true;
+}
+
+export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMsg: Message<true>) {
+  const openaiEnabled = leaderboards.Configuration[cmdMsg.guild.id].openai;
+  if (!openaiEnabled) return;
+
+  if (!hasAttachments(audioMsg)) {
+    await cmdMsg.react('❌');
+    return;
+  }
+  await cmdMsg.react('✅');
+  let transcriptions = "";
+  for (let attachment of audioMsg.attachments) {
+    let file = attachment[1];
+    if (!file.contentType?.startsWith('audio')) continue;
+    let transcription = await Whisper(file.url, file.name);
+    if (transcription == "") continue;
+    transcriptions += `> ${transcription}\n`;
+  }
+  if (transcriptions.length > 0) {
+    audioMsg.reply({ content: transcriptions.trim(), allowedMentions: generateAllowedMentions() });
+    if (cmdMsg.id !== audioMsg.id)
+      await cmdMsg.delete();
+    else
+      cmdMsg.reactions.removeAll(); // not the greatest but sure
+    return;
+  } else {
+    await cmdMsg.react('❌');
+    return;
+  }
 }
 
 /**
