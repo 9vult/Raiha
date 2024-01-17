@@ -13,6 +13,7 @@
     "discord.js": "^14.9.0",
     "dotenv": "^16.0.3",
     "firebase-admin": "^11.11.0",
+    "get-audio-duration": "^4.0.1",
     "openai": "^4.24.1"
   },
   "devDependencies": {

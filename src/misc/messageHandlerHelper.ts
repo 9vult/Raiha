@@ -11,6 +11,7 @@ import { AiResult } from "./types";
 import { Gpt } from "../actions/gpt.action";
 import { AutoMode } from "./misc";
 import { Whisper } from "../actions/whisper.action";
+const { getAudioDurationInSeconds } = require('get-audio-duration')
 
 /**
  * Check if this message contains a trigger word
@@ -282,11 +283,17 @@ export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMs
     await cmdMsg.react('❌');
     return;
   }
-  await cmdMsg.react('✅');
   let transcriptions = "";
   for (let attachment of audioMsg.attachments) {
     let file = attachment[1];
     if (!file.contentType?.startsWith('audio')) continue;
+    const dur = await getAudioDurationInSeconds(file.url);
+    if (dur > (5 * 60)) {
+      await cmdMsg.react('❌');
+      cmdMsg.reply({ content: "Error: Sorry, but this audio file is too long. Raiha can only transcribe files up to 5 minutes long.", allowedMentions: generateAllowedMentions() });
+      return;
+    }
+    await cmdMsg.react('✅');
     let transcription = await Whisper(file.url, file.name);
     if (transcription == "") continue;
     transcriptions += `> ${transcription}\n`;
