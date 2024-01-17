@@ -13,6 +13,6 @@ export async function Whisper(audioUrl: string, audioFileName: string) {
     });
     return whisperResponse;
   } catch (error) {
-    return "[An error occured while generating a transcription for this audio.]"
+    return `[An error occured while generating a transcription for this audio: ${error instanceof Error ? error.message : ""}]`
   }
 }
