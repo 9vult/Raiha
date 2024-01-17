@@ -1,13 +1,13 @@
-import { EmbedBuilder, Message, GuildMemberRoleManager, Interaction, GuildMember } from "discord.js";
+import { EmbedBuilder, GuildMemberRoleManager, Interaction, Message } from 'discord.js';
 import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
 import { expiry, editHelp, longHelp, shortHelp, whyText } from '../misc/misc';
 import { VERSION, db, leaderboards } from '../raiha';
 import { checkIsOP } from "../actions/checkIsOP.action";
 
-export default async function (interaction: Interaction) {
-  if (!interaction.isCommand()) return;
-  if (!interaction.isChatInputCommand() || !interaction.inCachedGuild()) return;
+export default async function (interaction: any) {
+  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.inCachedGuild()) return;
 
   const { commandName, options, user } = interaction;
 
@@ -15,7 +15,7 @@ export default async function (interaction: Interaction) {
     await interaction.deferReply();
     const specifiedUser = options.getUser('user') || user;
     const id = specifiedUser.id;
-    const content = postRank(id, interaction.guildId);
+    const content = postRank(id, interaction.guildId!);
     const embed = new EmbedBuilder()
       .setTitle(`Alt Text Leaderboards`)
       .setDescription(content)
@@ -30,7 +30,7 @@ export default async function (interaction: Interaction) {
 
     const page = options.getNumber('page')?.valueOf() ?? 1;
 
-    const content = postLeaderboard(interaction.guildId, page);
+    const content = postLeaderboard(interaction.guildId!, page);
     const embed = new EmbedBuilder()
       .setTitle(`Alt Text Leaderboards${page !== 1 ? ' (Page ' + page + ')' : ''}`)
       .setDescription(content.text)
@@ -45,7 +45,7 @@ export default async function (interaction: Interaction) {
     await interaction.deferReply();
 
     const page = options.getNumber('page')?.valueOf() ?? 1;
-    const content = await postLoserboard(interaction.guildId, page);
+    const content = await postLoserboard(interaction.guildId!, page);
     const embed = new EmbedBuilder()
       .setTitle(`Loserboard${page !== 1 ? ' (Page ' + page + ')' : ''}`)
       .setDescription(content)
@@ -91,9 +91,8 @@ export default async function (interaction: Interaction) {
     await interaction.deferReply();
 
     const { options, member } = interaction;
-
-    const roles = member.roles.cache;
-    if (roles.some(role => role.name === 'Staff')) {
+    let rm = (member!.roles as GuildMemberRoleManager).cache;
+    if (rm.has(leaderboards.Configuration[interaction.guildId!].modRole)) {
       const specifiedUser = options.getUser('user')!;
       const specifiedBoard = options.getString('board')!.valueOf();
       const specifiedValue = Math.max(0, options.getNumber('value')!.valueOf())
@@ -159,7 +158,7 @@ export default async function (interaction: Interaction) {
       .setColor(0xd797ff);
 
     await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-      .then(theReply => setTimeout(() => theReply.delete(), expireTime * 1000));
+      .then((theReply: Message<true>) => setTimeout(() => theReply.delete(), expireTime * 1000));
     return;
   }
 
@@ -171,7 +170,7 @@ export default async function (interaction: Interaction) {
       .setColor(0xd797ff);
 
     await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-      .then(theReply => {
+      .then((theReply: Message<true>) => {
         setTimeout(() => theReply.delete(), expireTime * 1000);
       });
     return;
@@ -185,7 +184,7 @@ export default async function (interaction: Interaction) {
       .setColor(0xd797ff);
 
     await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-      .then(theReply => setTimeout(() => theReply.delete(), expireTime * 1000));
+      .then((theReply: Message<true>) => setTimeout(() => theReply.delete(), expireTime * 1000));
     return;
   }
 
@@ -201,7 +200,7 @@ export default async function (interaction: Interaction) {
   }
 
   if (commandName === 'altrules') {
-    let serverValue = leaderboards.Configuration[interaction.guildId].altrules;
+    let serverValue = leaderboards.Configuration[interaction.guildId!].altrules;
     serverValue = serverValue.replaceAll('\\n', '\n');
     if (serverValue == 'default') serverValue = "This server has not specified any alt text rules.";
     const embed = new EmbedBuilder()

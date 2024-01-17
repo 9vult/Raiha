@@ -1,3 +1,4 @@
+import { SlashCommandBuilder } from 'discord.js';
 import { CLIENT } from '../raiha';
 
 export default function() {
@@ -14,145 +15,122 @@ export default function() {
   commands = CLIENT.application?.commands;
   // }
 
-  commands?.create({
-    name: 'rank',
-    description: 'Get ranks on the alt text leaderboards',
-    options: [
-      {
-        name: 'user',
-        description: 'User to get the rank of',
-        required: false,
-        type: 6 // USER
-      }
-    ]
-  });
+  const rankCmd = new SlashCommandBuilder()
+    .setName('rank')
+    .setDescription('Get ranks on the alt text leaderboards')
+    .addUserOption(opt => 
+      opt.setName('user')
+      .setDescription('User to get the rank of')
+      .setRequired(false)
+    );
 
-  commands?.create({
-    name: 'leaderboard',
-    description: 'Get the alt text leaderboard',
-    options: [
-      {
-        name: 'page',
-        description: 'Page of the leaderboard to get',
-        required: false,
-        type: 10 // NUMBER
-      }
-    ]
-  });
+  const leaderboardCmd = new SlashCommandBuilder()
+    .setName('leaderboard')
+    .setDescription('Get the alt text leaderboard')
+    .addNumberOption(opt =>
+      opt.setName('page')
+      .setDescription('Page of the leaderboard to get')
+      .setRequired(false)
+    );
+  
+  const loserboardCmd = new SlashCommandBuilder()
+    .setName('loserboard')
+    .setDescription('Get the alt text loserboard')
+    .addNumberOption(opt =>
+      opt.setName('page')
+      .setDescription('Page of the loserboard to get')
+      .setRequired(false)
+    );
 
-  commands?.create({
-    name: 'loserboard',
-    description: 'Get the alt text loserboard',
-    options: [
-      {
-        name: 'page',
-        description: 'Page of the loserboard to get',
-        required: false,
-        type: 10 // NUMBER
-      }
-    ]
-  });
+  const deleteCmd = new SlashCommandBuilder()
+  .setName('delete')
+  .setDescription('Delete a Raiha message')
+  .addStringOption(opt => 
+    opt.setName('msgid')
+    .setDescription('Message ID of the message to delete')
+    .setRequired(true)
+  );
 
-  commands?.create({
-    name: 'delete',
-    description: 'Delete a Raiha message',
-    options: [
-      {
-        name: 'msgid',
-        description: 'Message ID of the message to delete',
-        required: true,
-        type: 3 // STRING
-      }
-    ]
-  });
+  const helpCmd = new SlashCommandBuilder()
+  .setName('help')
+  .setDescription('Raiha short help');
 
-  commands?.create({
-    name: 'help',
-    description: 'Raiha short help'
-  });
+  const longHelpCmd = new SlashCommandBuilder()
+  .setName('longhelp')
+  .setDescription('Raiha long help');
 
-  commands?.create({
-    name: 'longhelp',
-    description: 'Raiha long help'
-  });
+  const editHelpCmd = new SlashCommandBuilder()
+  .setName('edithelp')
+  .setDescription('Raiha editing help');
 
-  commands?.create({
-    name: 'edithelp',
-    description: 'Editing Raiha messages'
-  });
+  const whyCmd = new SlashCommandBuilder()
+  .setName('why')
+  .setDescription('Why use alt text?');
 
-  commands?.create({
-    name: 'why',
-    description: 'Why use alt text?'
-  });
+  const aboutCmd = new SlashCommandBuilder()
+  .setName('about')
+  .setDescription('About Raiha');
 
-  commands?.create({
-    name: 'about',
-    description: 'About Raiha'
-  });
+  const altRulesCmd = new SlashCommandBuilder()
+  .setName('altrules')
+  .setDescription('Server alt-text rules');
 
-  commands?.create({
-    name: 'altrules',
-    description: 'Alt text rules'
-  });
+  const setCmd = new SlashCommandBuilder()
+  .setName('set')
+  .setDescription('Override leaderboard values (Mod Only)')
+  .addUserOption(opt =>
+    opt.setName('user')
+    .setDescription('User to set the value of')
+    .setRequired(true)
+  ).addStringOption(opt =>
+    opt.setName('board')
+    .setDescription('Board to set')
+    .setRequired(true)
+    .addChoices(
+      { name: 'Native', value: 'Native' },
+      { name: 'Raiha', value: 'Raiha' },
+      { name: 'Loserboard', value: 'Loserboard' }
+    )
+  ).addNumberOption(opt =>
+    opt.setName('value')
+    .setDescription('Value to set the board to')
+    .setRequired(true)
+  );
 
-  commands?.create({
-    name: 'set',
-    description: 'Override leaderboard values (Mod Only)',
-    options: [
-      {
-        name: 'user',
-        description: 'User to set the value of',
-        required: true,
-        type: 6 // USER
-      },
-      {
-        name: 'board',
-        description: 'Board to set',
-        required: true,
-        type: 3, // STRING
-        choices: [
-          { name: 'Native', value: 'Native' },
-          { name: 'Raiha', value: 'Raiha' },
-          { name: 'Loserboard', value: 'Loserboard' }
-        ]
-      },
-      {
-        name: 'value',
-        description: 'Value to set the board to',
-        required: true,
-        type: 10 // NUMBER
-      }
-    ]
-  });
+  const userSettingCmd = new SlashCommandBuilder()
+    .setName('usersetting')
+    .setDescription('Raiha user settings')
+    .addStringOption(opt =>
+      opt.setName('setting')
+      .setDescription('Setting to set')
+      .setRequired(true)
+      .setChoices(
+        { name: 'Reminder', value: 'Reminder' },
+        { name: 'Activation Failure', value: 'ActivationFailure' },
+        { name: 'Auto', value: 'AutoMode' }
+      )
+    ).addStringOption(opt =>
+      opt.setName('option')
+      .setDescription('Setting value')
+      .setRequired(true)
+      .setChoices(
+        { name: 'YES', value: 'YES' },
+        { name: 'NO', value: 'NO' }
+      )
+    );
 
-  commands?.create({
-    name: 'usersetting',
-    description: 'Raiha user settings',
-    options: [
-      {
-        name: 'setting',
-        description: 'Setting to set',
-        required: true,
-        type: 3, // STRING
-        choices: [
-          { name: 'Reminder', value: 'Reminder' },
-          { name: 'Activation Failure', value: 'ActivationFailure' },
-          { name: 'Auto', value: 'AutoMode' }
-        ]
-      },
-      {
-        name: 'option',
-        description: 'Setting value',
-        required: true,
-        type: 3, // STRING
-        choices: [
-          { name: 'YES', value: 'YES' },
-          { name: 'NO', value: 'NO' }
-        ]
-      },
-    ]
-  });
+    CLIENT.application.commands.create(rankCmd);
+    CLIENT.application.commands.create(leaderboardCmd);
+    CLIENT.application.commands.create(loserboardCmd);
+    CLIENT.application.commands.create(deleteCmd);
+    CLIENT.application.commands.create(helpCmd);
+    CLIENT.application.commands.create(longHelpCmd);
+    CLIENT.application.commands.create(editHelpCmd);
+    CLIENT.application.commands.create(whyCmd);
+    CLIENT.application.commands.create(aboutCmd);
+    CLIENT.application.commands.create(altRulesCmd);
+    CLIENT.application.commands.create(setCmd);
+    CLIENT.application.commands.create(userSettingCmd);
 
   console.log('Raiha is ready to go!');
 };

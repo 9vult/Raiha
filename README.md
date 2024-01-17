@@ -105,7 +105,7 @@ Edit and Delete commands will only work if you are the original poster of the me
   leaderboard: boolean,
   loserboard: boolean,
   modChannel: string (channelID),
-  modRole: string (roleName),
+  modRole: int (roleId),
   muteThreshold: number (0 to disable),
   specialWarnThresholds: number[] (ignores enableWarnings value),
   placeInMessageBodyMode: "off" | "all" | "description",

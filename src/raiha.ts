@@ -3,7 +3,7 @@
  * (c) 2022 9volt
  */
 
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, Events, GatewayIntentBits } from "discord.js";
 import messageCreate from "./listeners/messageCreate";
 import interactionCreate from "./listeners/interactionCreate";
 import ready from "./listeners/ready";
@@ -55,8 +55,8 @@ db.ref('/Configuration').on("value", (data: DataSnapshot) => leaderboards.Config
 db.ref('/UserSettings').on("value", (data: DataSnapshot) => leaderboards.UserSettings = data.val() as Record<string, UserSettings>);
 
 // Set up listeners
-client.on('ready', ready);
-client.on('interactionCreate', interactionCreate);
-client.on('messageCreate', messageCreate);
+client.once(Events.ClientReady, ready);
+client.on(Events.InteractionCreate, interactionCreate);
+client.on(Events.MessageCreate, messageCreate);
 
 client.login(process.env.TOKEN);
