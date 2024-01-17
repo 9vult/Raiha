@@ -71,6 +71,7 @@ Edit and Delete commands will only work if you are the original poster of the me
 
 ## Setup
 
+ - Note: Raiha has been tested using `Node 21.4.0`
  - Raiha requires a [Firebase Real-Time Database](https://firebase.google.com/docs/database) for logging and leaderboards. The base tier is free, and it is highly unlikely Raiha will ever generate enough data to exceed the base tier.
  - Raiha also requires an [Azure Cognitive Vision Service](https://learn.microsoft.com/en-us/azure/cognitive-services/custom-vision-service/limits-and-quotas) instance. The base tier is free, and allows for 20 requests per minute, and 5000 per month.
  - Optionally, Raiha can use [GPT-4 with vision](https://platform.openai.com/docs/guides/vision). This is a paid service, but by using the `low` detail setting, expenses can be mitigated. If this feature is not being used, ensure that the `openai` guild configuration option is set to `false`.

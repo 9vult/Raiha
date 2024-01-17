@@ -1,7 +1,5 @@
 import { AiResult } from "src/misc/types";
 
-const fetch = require("node-fetch");
-
 export const generateAIDescription = async (imageUrl: string, doCaption: boolean, doOCR: boolean): Promise<AiResult> => {
   const captionEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=caption`;
   const ocrEndpoint = `${process.env.CV_ENDPOINT}computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=read`;

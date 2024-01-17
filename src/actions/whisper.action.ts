@@ -1,5 +1,4 @@
 import OpenAI from "openai";
-const fetch = require("node-fetch");
 
 export async function Whisper(audioUrl: string, audioFileName: string) {
   const openai = new OpenAI();
