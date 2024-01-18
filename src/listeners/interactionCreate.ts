@@ -1,9 +1,10 @@
-import { EmbedBuilder, GuildMemberRoleManager, Interaction, Message } from 'discord.js';
+import { ActionRowBuilder, EmbedBuilder, GuildMemberRoleManager, Interaction, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from 'discord.js';
 import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
-import { expiry, editHelp, longHelp, shortHelp, whyText } from '../misc/misc';
+import { expiry, whyText } from '../misc/misc';
 import { VERSION, db, leaderboards } from '../raiha';
 import { checkIsOP } from "../actions/checkIsOP.action";
+import { HelpEmbedMap, HelpSelections } from '../misc/help';
 
 export default async function (interaction: any) {
   if (!interaction.isChatInputCommand()) return;
@@ -151,41 +152,23 @@ export default async function (interaction: any) {
   }
 
   if (commandName === 'help') {
-    const expireTime = 45;
-    const embed = new EmbedBuilder()
-      .setTitle(`Raiha Help (Condensed)`)
-      .setDescription(expiry(shortHelp, expireTime))
-      .setColor(0xd797ff);
+    const row = new ActionRowBuilder()
+			.addComponents(HelpSelections);
 
-    await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-      .then((theReply: Message<true>) => setTimeout(() => theReply.delete(), expireTime * 1000));
-    return;
-  }
+		const response = await interaction.reply({
+      content: "Please make a selection:",
+			components: [row],
+    });
 
-  if (commandName === 'longhelp') {
-    const expireTime = 90;
-    const embed = new EmbedBuilder()
-      .setTitle(`Raiha Help`)
-      .setDescription(expiry(longHelp, expireTime))
-      .setColor(0xd797ff);
-
-    await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-      .then((theReply: Message<true>) => {
-        setTimeout(() => theReply.delete(), expireTime * 1000);
-      });
-    return;
-  }
-
-  if (commandName === 'edithelp') {
-    const expireTime = 25;
-    const embed = new EmbedBuilder()
-      .setTitle(`Raiha Help (Editing & Deleting)`)
-      .setDescription(expiry(editHelp, expireTime))
-      .setColor(0xd797ff);
-
-    await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-      .then((theReply: Message<true>) => setTimeout(() => theReply.delete(), expireTime * 1000));
-    return;
+    const collectorFilter = (i: Interaction) => i.user.id === interaction.user.id;
+    try {
+      const confirmation = await response.awaitMessageComponent({ filter: collectorFilter, time: 60_000 });
+      const selection: string = confirmation.values[0] ?? 'error';
+      await confirmation.update({ content: "", embeds: [HelpEmbedMap[selection]], components: [] })
+    } catch (e) {
+      console.log(e);
+      await interaction.deleteReply();
+    }
   }
 
   if (commandName === 'why') {

@@ -55,14 +55,6 @@ export default function() {
   .setName('help')
   .setDescription('Raiha short help');
 
-  const longHelpCmd = new SlashCommandBuilder()
-  .setName('longhelp')
-  .setDescription('Raiha long help');
-
-  const editHelpCmd = new SlashCommandBuilder()
-  .setName('edithelp')
-  .setDescription('Raiha editing help');
-
   const whyCmd = new SlashCommandBuilder()
   .setName('why')
   .setDescription('Why use alt text?');
@@ -124,8 +116,6 @@ export default function() {
     CLIENT.application.commands.create(loserboardCmd);
     CLIENT.application.commands.create(deleteCmd);
     CLIENT.application.commands.create(helpCmd);
-    CLIENT.application.commands.create(longHelpCmd);
-    CLIENT.application.commands.create(editHelpCmd);
     CLIENT.application.commands.create(whyCmd);
     CLIENT.application.commands.create(aboutCmd);
     CLIENT.application.commands.create(altRulesCmd);
