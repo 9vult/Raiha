@@ -11,6 +11,7 @@ import { AiResult } from "./types";
 import { Gpt } from "../actions/gpt.action";
 import { AutoMode } from "./misc";
 import { Whisper } from "../actions/whisper.action";
+var parseSRT = require('parse-srt');
 const { getAudioDurationInSeconds } = require('get-audio-duration')
 
 /**
@@ -286,17 +287,40 @@ export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMs
   let transcriptions = "";
   for (let attachment of audioMsg.attachments) {
     let file = attachment[1];
-    if (!file.contentType?.startsWith('audio')) continue;
+    let ct = file.contentType ?? "";
+    let type: "text" | "srt";
+    if (ct.startsWith('audio')) type = "text";
+    else if (ct.startsWith('video')) type = "srt";
+    else return;
+
+    if (file.size > (25 * 1000000)) {
+      await cmdMsg.react('❌');
+      cmdMsg.reply({ content: `Sorry, but this file is too big. Raiha can only transcribe files up to 25 MB. (${file.size / 1000000})`, allowedMentions: generateAllowedMentions() });
+      return;
+    }
+
     const dur = await getAudioDurationInSeconds(file.url);
     if (dur > (5 * 60)) {
       await cmdMsg.react('❌');
-      cmdMsg.reply({ content: "Error: Sorry, but this audio file is too long. Raiha can only transcribe files up to 5 minutes long.", allowedMentions: generateAllowedMentions() });
+      cmdMsg.reply({ content: `Sorry, but this file is too long. Raiha can only transcribe files up to 5 minutes long. (${dur / 60})`, allowedMentions: generateAllowedMentions() });
       return;
     }
+
     await cmdMsg.react('✅');
-    let transcription = await Whisper(file.url, file.name);
+    let transcription = await Whisper(file.url, file.name, type);
     if (transcription == "") continue;
-    transcriptions += `> ${transcription}\n`;
+
+    if (type == "srt") {
+      let builder = "";
+      let srtAsJson = parseSRT(transcription);
+      for (let line of srtAsJson) {
+        builder += `[${new Date(line.start * 1000).toISOString().substring(15, 19)}]: ${line.text}\n`;
+      }
+      transcriptions += `\`\`\`\n${builder}\n\`\`\`\n`;
+    } else {
+      transcriptions += `> ${transcription}\n`;
+    }
+
   }
   if (transcriptions.length > 0) {
     audioMsg.reply({ content: transcriptions.trim(), allowedMentions: generateAllowedMentions() });

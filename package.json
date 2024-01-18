@@ -14,7 +14,8 @@
     "dotenv": "^16.0.3",
     "firebase-admin": "^11.11.0",
     "get-audio-duration": "^4.0.1",
-    "openai": "^4.24.1"
+    "openai": "^4.24.1",
+    "parse-srt": "^1.0.0-alpha"
   },
   "devDependencies": {
     "@firebase/database-types": "^0.10.4",

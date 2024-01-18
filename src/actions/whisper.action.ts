@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-export async function Whisper(audioUrl: string, audioFileName: string) {
+export async function Whisper(audioUrl: string, audioFileName: string, type: "text" | "srt") {
   const openai = new OpenAI();
   try {
     const discordResponse = await fetch(audioUrl);
@@ -9,7 +9,7 @@ export async function Whisper(audioUrl: string, audioFileName: string) {
     const whisperResponse = await openai.audio.transcriptions.create({
       model: "whisper-1",
       file: audioFile,
-      response_format: "text"
+      response_format: type
     });
     return whisperResponse;
   } catch (error) {
