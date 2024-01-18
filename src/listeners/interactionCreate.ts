@@ -160,13 +160,11 @@ export default async function (interaction: any) {
 			components: [row],
     });
 
-    const collectorFilter = (i: Interaction) => i.user.id === interaction.user.id;
     try {
-      const confirmation = await response.awaitMessageComponent({ filter: collectorFilter, time: 60_000 });
+      const confirmation = await response.awaitMessageComponent({ time: 60_000 });
       const selection: string = confirmation.values[0] ?? 'error';
       await confirmation.update({ content: "", embeds: [HelpEmbedMap[selection]], components: [] })
     } catch (e) {
-      console.log(e);
       await interaction.deleteReply();
     }
   }
