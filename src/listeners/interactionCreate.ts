@@ -64,14 +64,27 @@ export default async function (interaction: any) {
     if (rm.has(leaderboards.Configuration[interaction.guildId!].modRole)) {
       const specifiedUser = options.getUser('user')!;
       const specifiedBoard = options.getString('board')!.valueOf();
+      const specifiedOperation = options.getString('operation')!.valueOf();
       const specifiedValue = Math.max(0, options.getNumber('value')!.valueOf())
 
       const ref = db.ref(`/Leaderboard/${specifiedBoard!}/${interaction.guildId}`).child(specifiedUser.id);
-      ref.set(specifiedValue);
+      const newRef = db.ref(`/Leaderboard/${specifiedBoard!}/${interaction.guildId}`).child(specifiedUser.id); //Used to save new value for response message
+      if (specifiedOperation == 'Add') {
+        newRef.set(ref.val() + specifiedValue);
+        ref.set(newRef.val());
+      }
+      else if (specifiedOperation == 'Subtract') {
+        newRef.set(ref.val() - specifiedValue);
+        ref.set(newRef.val());
+      }
+      else if (specifiedOperation == 'Absolute') {
+        newRef.set(specifiedValue);
+        ref.set(specifiedValue);
+      }
 
       const embed = new EmbedBuilder()
         .setTitle(`Leaderboard Override`)
-        .setDescription(`Set <@${specifiedUser!.id}>'s **${specifiedBoard!}** value to \`${specifiedValue!}\`.`)
+        .setDescription(`Set <@${specifiedUser!.id}>'s **${specifiedBoard!}** value from \`${ref!}\` to \`${newRef!}\`.`)
         .setColor(0xd797ff);
       await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
       return;
