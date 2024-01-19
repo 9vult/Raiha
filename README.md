@@ -112,7 +112,8 @@ Edit and Delete commands will only work if you are the original poster of the me
   placeInMessageBodyMode: "off" | "all" | "description",
   disabledTriggers: string[] | undefined,
   openai: boolean,
-  autoModeOptOut: boolean
+  autoModeOptOut: boolean,
+  linkedImageLoserboard: boolean
 }
 ```
 
