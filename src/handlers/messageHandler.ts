@@ -10,7 +10,7 @@ import { remindUser } from "../actions/remindUser.action";
 import { informNewAutoModeOptOut } from "../actions/informNewAutoModeOptOut";
 import { urlCheck } from "../actions/urlCheck.action";
 import { urlCheckWarning } from "../actions/urlCheckWarning.action";
-import { urlCheckLoserboard } from "src/actions/urlCheckLoserboard.action";
+import { urlCheckLoserboard } from "../actions/urlCheckLoserboard.action";
 
 export async function handleMessage(msg: Message<true>) {
   if (msg.author.bot || !msg.inGuild()) return;
@@ -45,7 +45,7 @@ async function botCallBranch(msg: Message<true>) {
 async function noBotCallBranch(msg: Message<true>) {
   if (urlCheck(msg)) {
     urlCheckWarning(msg);
-    urlCheckLoserboard(msg.guild!.id, msg.author.id);
+    urlCheckLoserboard(msg);
   }
   if (!hasAttachments(msg)) return;
   
