@@ -13,4 +13,5 @@ export async function urlCheckWarning(originalMessage: Message<boolean>) {
       .then(theReply => {
         setTimeout(() => theReply.delete(), expireTime * 1000);
       });
+    await originalMessage.react('🔗');
   }
