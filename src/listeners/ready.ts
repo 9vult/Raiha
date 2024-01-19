@@ -78,9 +78,9 @@ export default function() {
     .setDescription('Should the value be added or subtracted?')
     .setRequired(false)
     .addChoices(
-      { name: 'Add value to existing', value: 'Add' },
-      { name: 'Subtract value from existing', value: 'Subtract' },
-      { name: 'Replace existing with value', value: 'Absolute' }
+      { name: 'Add', value: 'Add' },
+      { name: 'Subtract', value: 'Subtract' },
+      { name: 'Replace', value: 'Absolute' }
     )
   );
 
