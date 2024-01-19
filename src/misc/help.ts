@@ -80,7 +80,7 @@ const EditsHelp = new EmbedBuilder()
     "Full message replacement: Reply with `edit! New message body here`\n" +
     "Word/phrase replacement: Reply using the `sed`-like syntax `r/old/new`\n" +
     "**Deleting**\n" +
-    "Reply to the message with `delete!` or use the `/delete` command.\n" +
+    "Reply to the message with `delete!`.\n" +
     "_Note: Editing is only supported on messages with a message body. Messages without a body cannot be edited._"
   );
 

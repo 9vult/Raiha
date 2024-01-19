@@ -4,16 +4,11 @@ import { CLIENT } from '../raiha';
 export default function() {
   if (!CLIENT.user || !CLIENT.application) return;
 
-  // Command registration
-  // const guildId = '';
-  // const guild = CLIENT.guilds.cache.get(guildId);
-  let commands;
-
-  // if (guild) { 
-  //   commands = guild.commands;
-  // } else {
-  commands = CLIENT.application?.commands;
-  // }
+  // let commands;
+  // commands = CLIENT.application?.commands;
+  // commands.delete('1105593772286423152').then(console.log).catch(console.error);
+  // commands.delete('1177258370667909150').then(console.log).catch(console.error);
+  // commands.delete('1159307887156400242').then(console.log).catch(console.error);
 
   const rankCmd = new SlashCommandBuilder()
     .setName('rank')
@@ -41,15 +36,6 @@ export default function() {
       .setDescription('Page of the loserboard to get')
       .setRequired(false)
     );
-
-  const deleteCmd = new SlashCommandBuilder()
-  .setName('delete')
-  .setDescription('Delete a Raiha message')
-  .addStringOption(opt => 
-    opt.setName('msgid')
-    .setDescription('Message ID of the message to delete')
-    .setRequired(true)
-  );
 
   const helpCmd = new SlashCommandBuilder()
   .setName('help')
@@ -114,7 +100,6 @@ export default function() {
     CLIENT.application.commands.create(rankCmd);
     CLIENT.application.commands.create(leaderboardCmd);
     CLIENT.application.commands.create(loserboardCmd);
-    CLIENT.application.commands.create(deleteCmd);
     CLIENT.application.commands.create(helpCmd);
     CLIENT.application.commands.create(whyCmd);
     CLIENT.application.commands.create(aboutCmd);

@@ -56,38 +56,6 @@ export default async function (interaction: any) {
     return;
   }
 
-  if (commandName === 'delete') {
-    await interaction.deferReply({ ephemeral: true });
-
-    const messageID = options.getString('msgid')!.valueOf();
-    const message = await interaction.channel!.messages.fetch(messageID)
-      .catch(async () => {
-        const embed = new EmbedBuilder()
-          .setTitle("Raiha Message Delete")
-          .setDescription(`Could not find the message with ID ${messageID}.`)
-          .setColor(0xd797ff);
-        await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-        return null;
-      })
-    if (!message) return;
-
-    let isOP = (await checkIsOP(message, user))[0];
-
-    let responseText = '';
-    if (isOP) {
-      await message.delete().catch(() => {/* TODO: something here */ })
-      responseText = 'The message was successfully deleted.';
-    } else {
-      responseText = 'You are not the author of this message, or this message is not a Raiha message.';
-    }
-    const embed = new EmbedBuilder()
-      .setTitle(`Raiha Message Delete`)
-      .setDescription(responseText)
-      .setColor(0xd797ff);
-    await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-    return;
-  }
-
   if (commandName === 'set') {
     await interaction.deferReply();
 
