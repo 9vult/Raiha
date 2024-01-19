@@ -69,7 +69,7 @@ export default async function (interaction: any) {
       const specifiedValue = Math.max(0, options.getNumber('value')!.valueOf())
 
       const ref = db.ref(`/Leaderboard/${specifiedBoard!}/${interaction.guildId}`).child(specifiedUser.id);
-      const originalValue = await ref.val(); //Used to save new value for response message, will be updated later to reflect the arithmetic operation
+      const originalValue = (await ref.get()).val();
       if (specifiedOperation == 'Add') {
         ref.set(ServerValue.increment(specifiedValue));
       }
