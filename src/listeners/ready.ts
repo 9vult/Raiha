@@ -73,6 +73,15 @@ export default function() {
     opt.setName('value')
     .setDescription('Value to set the board to')
     .setRequired(true)
+  ).addStringOption(opt =>
+    opt.setName('operation')
+    .setDescription('Should the value be added or subtracted?')
+    .setRequired(false)
+    .addChoices(
+      { name: 'Add', value: 'Add' },
+      { name: 'Subtract', value: 'Subtract' },
+      { name: 'Replace', value: 'Absolute' }
+    )
   );
 
   const userSettingCmd = new SlashCommandBuilder()

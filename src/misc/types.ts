@@ -23,7 +23,8 @@ export interface Configuration {
   placeInMessageBodyMode: "off" | string,
   disabledTriggers: string[] | undefined,
   openai: boolean,
-  autoModeOptOut: boolean
+  autoModeOptOut: boolean,
+  linkedImageLoserboard: boolean
 }
 
 export interface UserSettings {
