@@ -69,23 +69,20 @@ export default async function (interaction: any) {
       const specifiedValue = Math.max(0, options.getNumber('value')!.valueOf())
 
       const ref = db.ref(`/Leaderboard/${specifiedBoard!}/${interaction.guildId}`).child(specifiedUser.id);
-      const newRef = await ref.val(); //Used to save new value for response message
+      const originalValue = await ref.val(); //Used to save new value for response message, will be updated later to reflect the arithmetic operation
       if (specifiedOperation == 'Add') {
-        newRef.set(ServerValue.increment(specifiedValue));
-        ref.set(newRef.val());
+        ref.set(ServerValue.increment(specifiedValue));
       }
       else if (specifiedOperation == 'Subtract') {
-        newRef.set(ServerValue.increment(-specifiedValue));
-        ref.set(newRef.val());
+        ref.set(ServerValue.increment(-specifiedValue));
       }
       else if (specifiedOperation == 'Absolute') {
-        newRef.set(specifiedValue);
         ref.set(specifiedValue);
       }
 
       const embed = new EmbedBuilder()
         .setTitle(`Leaderboard Override`)
-        .setDescription(`Set <@${specifiedUser!.id}>'s **${specifiedBoard!}** value from \`${ref!}\` to \`${newRef!}\`.`)
+        .setDescription(`Set <@${specifiedUser!.id}>'s **${specifiedBoard!}** value from \`${await ref.val()!}\` to \`${originalValue!}\`.`)
         .setColor(0xd797ff);
       await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
       return;
