@@ -82,7 +82,8 @@ export default async function (interaction: any) {
 
       const embed = new EmbedBuilder()
         .setTitle(`Leaderboard Override`)
-        .setDescription(`Set <@${specifiedUser!.id}>'s **${specifiedBoard!}** value from \`${originalValue!}\` to \`${await ref.val()!}\`.`)
+        .setDescription(`Set <@${specifiedUser!.id}>'s **${specifiedBoard!}** value from \`${originalValue!}\` to \`${(await ref.get()).val()!}\`.`)
+
         .setColor(0xd797ff);
       await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
       return;
