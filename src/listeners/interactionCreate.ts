@@ -1,4 +1,5 @@
 import { ActionRowBuilder, EmbedBuilder, GuildMemberRoleManager, Interaction, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from 'discord.js';
+import { ServerValue } from "firebase-admin/database";
 import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
 import { expiry, whyText } from '../misc/misc';
@@ -64,17 +65,17 @@ export default async function (interaction: any) {
     if (rm.has(leaderboards.Configuration[interaction.guildId!].modRole)) {
       const specifiedUser = options.getUser('user')!;
       const specifiedBoard = options.getString('board')!.valueOf();
-      const specifiedOperation = options.getString('operation')!.valueOf();
+      const specifiedOperation = options.getString('operation')?.valueOf() ?? 'Absolute';
       const specifiedValue = Math.max(0, options.getNumber('value')!.valueOf())
 
       const ref = db.ref(`/Leaderboard/${specifiedBoard!}/${interaction.guildId}`).child(specifiedUser.id);
-      const newRef = db.ref(`/Leaderboard/${specifiedBoard!}/${interaction.guildId}`).child(specifiedUser.id); //Used to save new value for response message
+      const newRef = await ref.val(); //Used to save new value for response message
       if (specifiedOperation == 'Add') {
-        newRef.set(ref.val() + specifiedValue);
+        newRef.set(ServerValue.increment(specifiedValue));
         ref.set(newRef.val());
       }
       else if (specifiedOperation == 'Subtract') {
-        newRef.set(ref.val() - specifiedValue);
+        newRef.set(ServerValue.increment(-specifiedValue));
         ref.set(newRef.val());
       }
       else if (specifiedOperation == 'Absolute') {
