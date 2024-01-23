@@ -51,6 +51,7 @@ export interface Trigger {
   type: TriggerType,
   position: number,
   length: number,
+  raw: string | undefined,
   override: TriggerOverride | undefined,
   body: string | undefined
 }
@@ -72,6 +73,7 @@ export const NoTrigger: Trigger = {
   type: TriggerType.NONE,
   position: -1,
   length: -1,
+  raw: undefined,
   override: undefined,
   body: undefined
 }

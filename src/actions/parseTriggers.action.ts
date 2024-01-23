@@ -4,14 +4,14 @@ import { leaderboards } from "../raiha";
 
 export default function parseTriggers(msg: Message<true>): Trigger {
   let lc = msg.content.toLowerCase();
-  let triggers = /(\br!|alt:|id:|!r|ts!|transcribe!|edit!|delete!)(?:\ --([A-Za-z]+)=([A-Za-z]+))?/ig;
+  const triggers = /\b(r!|alt:|id:|!r|ts!|transcribe!|edit!|r\/|delete!)(?:\ --([A-Za-z]+)=([A-Za-z]+))?/ig;
   let match = lc.matchAll(triggers).next().value;
   if (!match) return NoTrigger;
 
   let rawTrigger: string = match[1];
   let oKey: string = match[2];
   let oValue: string = match[3];
-  let position: number = match[4];
+  let position: number = match.index;
 
   if (disabled(msg, rawTrigger)) return NoTrigger;
 
@@ -31,6 +31,7 @@ export default function parseTriggers(msg: Message<true>): Trigger {
     case 'transcribe!':
       type = TriggerType.TRANSCRIPTION;
       break;
+    case 'r/':
     case 'edit!':
       type = TriggerType.EDIT;
       break;
@@ -44,16 +45,17 @@ export default function parseTriggers(msg: Message<true>): Trigger {
   if (!oKey || !oValue) {
     length = rawTrigger.length;
     override = undefined;
-    body = msg.content.substring(position, position + rawTrigger.length).trim()
+    body = msg.content.substring(position + rawTrigger.length).trim()
   } else {
     length = rawTrigger.length + oKey.length + oValue.length + 3; // 3: --=
     override = { key: oKey, value: oValue },
-    body = msg.content.substring(position, position + rawTrigger.length).trim()
+    body = msg.content.substring(position + rawTrigger.length).trim()
   }
   return {
     type,
     position,
     length,
+    raw: rawTrigger,
     override,
     body
   }
