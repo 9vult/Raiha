@@ -203,7 +203,7 @@ export function areNotImages(message: Message<true>): boolean {
   return true;
 }
 
-export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMsg: Message<true>) {
+export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMsg: Message<true>, triggerData: Trigger) {
   const openaiEnabled = leaderboards.Configuration[cmdMsg.guild.id].openai;
   if (!openaiEnabled) return;
 
@@ -216,9 +216,16 @@ export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMs
     let file = attachment[1];
     let ct = file.contentType ?? "";
     let type: "text" | "srt";
+    // Defaults
     if (ct.startsWith('audio')) type = "text";
     else if (ct.startsWith('video')) type = "srt";
     else return;
+    // Override
+    if (triggerData.override)
+      if (triggerData.override.key.toLowerCase() == "type")
+        if (triggerData.override.value == "text" || triggerData.override.value == "srt")
+          type = triggerData.override.value;
+    // Continue with defaults for all other cases
 
     if (file.size > (25 * 1000000)) {
       await cmdMsg.react('❌');

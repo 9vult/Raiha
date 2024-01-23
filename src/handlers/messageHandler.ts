@@ -27,7 +27,7 @@ export async function handleMessage(msg: Message<true>) {
       case TriggerType.DELETE:
         return await deleteTriggerBranch(msg, parent, triggerData);
       case TriggerType.TRANSCRIPTION:
-        return await doBotTriggeredTranscription(msg, parent);
+        return await doBotTriggeredTranscription(msg, parent, triggerData);
       default:
         break;
     }
@@ -35,14 +35,14 @@ export async function handleMessage(msg: Message<true>) {
 
   switch (triggerData.type) {
     case TriggerType.TRANSCRIPTION:
-      return await doBotTriggeredTranscription(msg, msg);
+      return await doBotTriggeredTranscription(msg, msg, triggerData);
     case TriggerType.ALT:
       return await botCallBranch(msg, triggerData);
     default:
       break;
   }
 
-  if (isAudioMessage(msg)) return await doBotTriggeredTranscription(msg, msg);
+  if (isAudioMessage(msg)) return await doBotTriggeredTranscription(msg, msg, NoTrigger);
   return await noBotCallBranch(msg);
 }
 
