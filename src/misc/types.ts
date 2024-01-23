@@ -46,3 +46,32 @@ export interface AiResult {
   desc: string,
   ocr: string
 }
+
+export interface Trigger {
+  type: TriggerType,
+  position: number,
+  length: number,
+  override: TriggerOverride | undefined,
+  body: string | undefined
+}
+
+export interface TriggerOverride {
+  key: string,
+  value: string
+}
+
+export enum TriggerType {
+  NONE,
+  ALT,
+  TRANSCRIPTION,
+  EDIT,
+  DELETE
+}
+
+export const NoTrigger: Trigger = {
+  type: TriggerType.NONE,
+  position: -1,
+  length: -1,
+  override: undefined,
+  body: undefined
+}
