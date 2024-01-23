@@ -2,7 +2,7 @@ import { EmbedBuilder, Message } from "discord.js";
 import { ServerValue } from "firebase-admin/database";
 import { checkIsOP } from "../actions/checkIsOP.action";
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
-import { areNotImages, doBotTriggeredAltText, doBotTriggeredTranscription, fail, getAltPosition, getParent, hasAltCommand, hasAttachments, isAudioMessage, isMissingAltText, isReply, userHasAutoModeEnabled, wantsDelete, wantsEdit, wantsTranscription, wasPostedByBot } from "../misc/messageHandlerHelper";
+import { areNotImages, doBotTriggeredAltText, doBotTriggeredTranscription, fail, getParent, hasAttachments, isAudioMessage, isMissingAltText, isReply, userHasAutoModeEnabled, wasPostedByBot } from "../misc/messageHandlerHelper";
 import { AutoMode, expiry } from "../misc/misc";
 import { db, leaderboards } from "../raiha";
 import { informNewUser } from "../actions/informNewUser.action";
@@ -11,35 +11,53 @@ import { informNewAutoModeOptOut } from "../actions/informNewAutoModeOptOut";
 import { urlCheck } from "../actions/urlCheck.action";
 import { urlCheckWarning } from "../actions/urlCheckWarning.action";
 import { urlCheckLoserboard } from "../actions/urlCheckLoserboard.action";
+import parseTriggers from "../actions/parseTriggers.action";
+import { NoTrigger, Trigger, TriggerType } from "../misc/types";
 
 export async function handleMessage(msg: Message<true>) {
   if (msg.author.bot || !msg.inGuild()) return;
 
+  let triggerData = parseTriggers(msg);
+
   if (isReply(msg)) {
     const parent = await getParent(msg);
-    if (wantsEdit(msg)) return await editTriggerBranch(msg, parent);
-    if (wantsDelete(msg)) return await deleteTriggerBranch(msg, parent);
-    if (wantsTranscription(msg)) return await doBotTriggeredTranscription(msg, parent);
+    switch (triggerData.type) {
+      case TriggerType.EDIT:
+        return await editTriggerBranch(msg, parent, triggerData);
+      case TriggerType.DELETE:
+        return await deleteTriggerBranch(msg, parent, triggerData);
+      case TriggerType.TRANSCRIPTION:
+        return await doBotTriggeredTranscription(msg, parent, triggerData);
+      default:
+        break;
+    }
   }
-  if (wantsTranscription(msg) || isAudioMessage(msg)) return await doBotTriggeredTranscription(msg, msg);
 
-  if (hasAltCommand(msg)) return await botCallBranch(msg);
+  switch (triggerData.type) {
+    case TriggerType.TRANSCRIPTION:
+      return await doBotTriggeredTranscription(msg, msg, triggerData);
+    case TriggerType.ALT:
+      return await botCallBranch(msg, triggerData);
+    default:
+      break;
+  }
+
+  if (isAudioMessage(msg)) return await doBotTriggeredTranscription(msg, msg, NoTrigger);
   return await noBotCallBranch(msg);
 }
 
-async function botCallBranch(msg: Message<true>) {
+async function botCallBranch(msg: Message<true>, triggerData: Trigger) {
   // Has attachments - Self trigger mode
-  if (hasAttachments(msg)) return await doBotTriggeredAltText(msg, msg, false);
+  if (hasAttachments(msg)) return await doBotTriggeredAltText(msg, msg, false, triggerData);
   // No attachments
   // Starts with trigger but is not a reply - fail
-  const dt = leaderboards.Configuration[msg.guild.id].disabledTriggers;
-  if (getAltPosition(msg, dt)[0] == 0 && !isReply(msg)) return await fail('ERR_NOT_REPLY', msg, false);
+  if (triggerData.position == 0 && !isReply(msg)) return await fail('ERR_NOT_REPLY', msg, false);
   // Not a reply and the trigger is not at the start: ignore
   if (!isReply(msg)) return;
   // Reply trigger mode
   const parent = await getParent(msg);
   if (!hasAttachments(parent)) return await fail('ERR_NOT_REPLY', msg, false);
-  return await doBotTriggeredAltText(msg, parent, false);
+  return await doBotTriggeredAltText(msg, parent, false, triggerData);
 }
 
 async function noBotCallBranch(msg: Message<true>) {
@@ -48,13 +66,13 @@ async function noBotCallBranch(msg: Message<true>) {
     urlCheckLoserboard(msg);
   }
   if (!hasAttachments(msg)) return;
-  
+
   if (isMissingAltText(msg)) {
     const autoModeMode = userHasAutoModeEnabled(msg.author.id);
     if ([AutoMode.ON, AutoMode.IMPLICIT].includes(autoModeMode)) {
       if (autoModeMode == AutoMode.ON || (leaderboards.Configuration[msg.guild.id].autoModeOptOut && autoModeMode == AutoMode.IMPLICIT)) {
         await informNewAutoModeOptOut(msg);
-        return await doBotTriggeredAltText(msg, msg, true);
+        return await doBotTriggeredAltText(msg, msg, true, NoTrigger);
       }
     }
     await informNewUser(msg);
@@ -67,9 +85,9 @@ async function noBotCallBranch(msg: Message<true>) {
   }
 }
 
-async function deleteTriggerBranch(msg: Message<true>, parent: Message<true>) {
+async function deleteTriggerBranch(msg: Message<true>, parent: Message<true>, triggerData: Trigger) {
   const expireTime = 10;
-  if (!wasPostedByBot(parent)) return 
+  if (!wasPostedByBot(parent)) return
   let isOP = (await checkIsOP(parent, msg.author))[0];
   let responseText = '';
   if (isOP) {
@@ -82,11 +100,11 @@ async function deleteTriggerBranch(msg: Message<true>, parent: Message<true>) {
       .setDescription(expiry(responseText, 10))
       .setColor(0xd797ff);
     await msg.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-    .then(reply => setTimeout(() => reply.delete(), expireTime * 1000));
+      .then(reply => setTimeout(() => reply.delete(), expireTime * 1000));
   }
 }
 
-async function editTriggerBranch(msg: Message<true>, parent: Message<true>) {
+async function editTriggerBranch(msg: Message<true>, parent: Message<true>, triggerData: Trigger) {
   if (!wasPostedByBot(parent)) return;
   const opLookup = await checkIsOP(parent, msg.author);
   let isOP = opLookup[0];
