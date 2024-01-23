@@ -47,9 +47,9 @@ export default function parseTriggers(msg: Message<true>): Trigger {
     override = undefined;
     body = msg.content.substring(position + rawTrigger.length).trim()
   } else {
-    length = rawTrigger.length + oKey.length + oValue.length + 3; // 3: --=
+    length = rawTrigger.length + oKey.length + oValue.length + 4; // 3: -- =
     override = { key: oKey, value: oValue },
-    body = msg.content.substring(position + rawTrigger.length).trim()
+    body = msg.content.substring(position + length).trim()
   }
   return {
     type,

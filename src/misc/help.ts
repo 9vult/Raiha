@@ -22,7 +22,10 @@ export const HelpSelections = new StringSelectMenuBuilder()
       .setValue('edits'),
     new StringSelectMenuOptionBuilder()
       .setLabel('Transcribing Audio')
-      .setValue('audio')
+      .setValue('audio'),
+    new StringSelectMenuOptionBuilder()
+      .setLabel('Override Flags')
+      .setValue('overrides')
   );
 
 const NativeHelp = new EmbedBuilder()
@@ -95,11 +98,24 @@ const AudioHelp = new EmbedBuilder()
     "_Note: This feature may be disabled by server admins._"
   );
 
+  const OverridesHelp = new EmbedBuilder()
+  .setTitle('Raiha Help - Overrides')
+  .setDescription(
+    "You can override some of Raiha's default behavior using override flags, similar to those used in command-line applications.\n" +
+    "There are currently two overrides available:\n" +
+    "Alt text: `--model=[gpt|azure]`.\n" +
+    "To force the use of Azure OCR, for example, you can use: `r! --model=azure $$ocr`\n" +
+    "Transcriptions: `--type=[text|srt]`.\n" +
+    "To force the use of SRT mode for audio, you can use: `ts! --type=srt`\n" +
+    "_Note: Overrides will apply to all alts/transcriptions triggered by the message._"
+  );
+
 export const HelpEmbedMap: { [key: string]: EmbedBuilder } = {
   'native': NativeHelp,
   'reposts': RepostsHelp,
   'ai': AiHelp,
   'auto-reminders': AutoRemindersHelp,
   'edits': EditsHelp,
-  'audio': AudioHelp
+  'audio': AudioHelp,
+  'overrides': OverridesHelp
 };

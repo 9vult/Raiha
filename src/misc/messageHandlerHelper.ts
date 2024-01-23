@@ -91,10 +91,15 @@ export function parseAltText(triggerData: Trigger): string[] {
  * @param altTexts Alt texts to apply
  * @returns Fixed attachments
  */
-export async function applyAltText(msg: Message<true>, altTexts: string[]) {
+export async function applyAltText(msg: Message<true>, altTexts: string[], triggerData: Trigger) {
   let fixedFiles: Array<Attachment> = [];
   let altTextResults: AiResult[] = [];
   let index = 0;
+  let override;
+  if (triggerData.override && triggerData.override.key.toLowerCase() == "model")
+    if (triggerData.override.value.toLowerCase() == "gpt" || triggerData.override.value.toLowerCase() == "azure")
+      override = triggerData.override.value;
+
   for (let attachment of msg.attachments) {
     if (altTexts[index].trim() == "$$") {
       if (attachment[1].contentType == "image/gif") {
@@ -106,7 +111,10 @@ export async function applyAltText(msg: Message<true>, altTexts: string[]) {
         const openaiEnabled = leaderboards.Configuration[msg.guild.id].openai;
         let ai: AiResult;
         if (openaiEnabled) {
-          ai = { desc: await Gpt(imageUrl) ?? "", ocr: "" }
+          if (!override || (override && override == 'gpt'))
+            ai = { desc: await Gpt(imageUrl) ?? "", ocr: "" }
+          else
+            ai = await generateAIDescription(imageUrl, true, false);
         } else {
           ai = await generateAIDescription(imageUrl, true, false);
         }
@@ -125,11 +133,14 @@ export async function applyAltText(msg: Message<true>, altTexts: string[]) {
         const openaiEnabled = leaderboards.Configuration[msg.guild.id].openai;
         let ai: AiResult;
         if (openaiEnabled) {
-          ai = { desc: await Gpt(imageUrl) ?? "", ocr: "" }
+          if (!override || (override && override == 'gpt'))
+            ai = { desc: await Gpt(imageUrl) ?? "", ocr: "" }
+          else
+          ai = await generateAIDescription(imageUrl, true, true);
         } else {
           ai = await generateAIDescription(imageUrl, true, true);
-          altTextResults.push(ai);
         }
+        altTextResults.push(ai);
         const desc = ai.ocr.length > 0 ? `${ai.desc}: ${ai.ocr}`.replace('\n', ' \n') : ai.desc;
         altTextResults.push(ai);
         altTexts[index] = desc.substring(0, 1000);
@@ -293,7 +304,7 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
   if (altTexts.length !== imgMsg.attachments.size) return await fail('ERR_MISMATCH', cmdMsg, inline);
 
   await cmdMsg.react('✅');
-  const applied = await applyAltText(imgMsg, altTexts);
+  const applied = await applyAltText(imgMsg, altTexts, triggerData);
   let fixedFiles = applied.files;
   let mentions = getMentions(imgMsg);
   let allowedMentions = generateAllowedMentions(mentions);
