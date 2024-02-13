@@ -111,8 +111,13 @@ export async function applyAltText(msg: Message<true>, altTexts: string[], trigg
         const openaiEnabled = leaderboards.Configuration[msg.guild.id].openai;
         let ai: AiResult;
         if (openaiEnabled) {
-          if (!override || (override && override == 'gpt'))
+          if (!override || (override && override == 'gpt')) {
             ai = { desc: await Gpt(imageUrl) ?? "", ocr: "" }
+            if (ai.desc.startsWith('[[error]]')) {
+              msg.reply(`An error occured. Please consider manually adding alt text to the affected image(s).\n${ai.desc.replace(/\(.+\)/, '')}`);
+              ai.desc = "[An error occured while generating alt text for this image.]";
+            }
+          }
           else
             ai = await generateAIDescription(imageUrl, true, false);
         } else {
@@ -133,8 +138,13 @@ export async function applyAltText(msg: Message<true>, altTexts: string[], trigg
         const openaiEnabled = leaderboards.Configuration[msg.guild.id].openai;
         let ai: AiResult;
         if (openaiEnabled) {
-          if (!override || (override && override == 'gpt'))
+          if (!override || (override && override == 'gpt')) {
             ai = { desc: await Gpt(imageUrl) ?? "", ocr: "" }
+            if (ai.desc.startsWith('[[error]]')) {
+              msg.reply(`An error occured. Please consider manually adding alt text to the affected image(s).\n${ai.desc.replace(/\(.+\)/, '')}`);
+              ai.desc = "[An error occured while generating alt text for this image.]";
+            }
+          }
           else
           ai = await generateAIDescription(imageUrl, true, true);
         } else {

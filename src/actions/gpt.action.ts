@@ -30,7 +30,7 @@ export async function Gpt(imageUrl: string) {
       max_tokens: 300
     });
     return response.choices[0].message.content;
-  } catch (error) {
-    return "[An error occured while generating alt text for this image.]"
+  } catch (error: any) {
+    return `[[error]] ${error.status} ${error.type}\n${error.error.message}`;
   }
 }
