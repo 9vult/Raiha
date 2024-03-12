@@ -54,35 +54,44 @@ export default function() {
   .setDescription('Server alt-text rules');
 
   const setCmd = new SlashCommandBuilder()
-  .setName('set')
-  .setDescription('Override leaderboard values (Mod Only)')
-  .addUserOption(opt =>
-    opt.setName('user')
-    .setDescription('User to set the value of')
-    .setRequired(true)
-  ).addStringOption(opt =>
-    opt.setName('board')
-    .setDescription('Board to set')
-    .setRequired(true)
-    .addChoices(
-      { name: 'Native', value: 'Native' },
-      { name: 'Raiha', value: 'Raiha' },
-      { name: 'Loserboard', value: 'Loserboard' }
-    )
-  ).addNumberOption(opt =>
-    opt.setName('value')
-    .setDescription('Value to set the board to')
-    .setRequired(true)
-  ).addStringOption(opt =>
-    opt.setName('operation')
-    .setDescription('Should the value be added or subtracted?')
-    .setRequired(false)
-    .addChoices(
-      { name: 'Add', value: 'Add' },
-      { name: 'Subtract', value: 'Subtract' },
-      { name: 'Replace', value: 'Absolute' }
-    )
-  );
+    .setName('set')
+    .setDescription('Override leaderboard values (Mod Only)')
+    .addUserOption(opt =>
+      opt.setName('user')
+      .setDescription('User to set the value of')
+      .setRequired(true)
+    ).addStringOption(opt =>
+      opt.setName('board')
+      .setDescription('Board to set')
+      .setRequired(true)
+      .addChoices(
+        { name: 'Native', value: 'Native' },
+        { name: 'Raiha', value: 'Raiha' },
+        { name: 'Loserboard', value: 'Loserboard' }
+      )
+    ).addNumberOption(opt =>
+      opt.setName('value')
+      .setDescription('Value to set the board to')
+      .setRequired(true)
+    ).addStringOption(opt =>
+      opt.setName('operation')
+      .setDescription('Should the value be added or subtracted?')
+      .setRequired(false)
+      .addChoices(
+        { name: 'Add', value: 'Add' },
+        { name: 'Subtract', value: 'Subtract' },
+        { name: 'Replace', value: 'Absolute' }
+      )
+    );
+
+  const logsCmd = new SlashCommandBuilder()
+    .setName('logs')
+    .setDescription('View Auto Punishment logs for a user (Mod Only)')
+    .addUserOption(opt => 
+      opt.setName('user')
+      .setDescription('User to view')
+      .setRequired(true)
+    );
 
   const userSettingCmd = new SlashCommandBuilder()
     .setName('usersetting')
@@ -106,15 +115,16 @@ export default function() {
       )
     );
 
-    CLIENT.application.commands.create(rankCmd);
-    CLIENT.application.commands.create(leaderboardCmd);
-    CLIENT.application.commands.create(loserboardCmd);
-    CLIENT.application.commands.create(helpCmd);
-    CLIENT.application.commands.create(whyCmd);
-    CLIENT.application.commands.create(aboutCmd);
-    CLIENT.application.commands.create(altRulesCmd);
-    CLIENT.application.commands.create(setCmd);
-    CLIENT.application.commands.create(userSettingCmd);
+  CLIENT.application.commands.create(rankCmd);
+  CLIENT.application.commands.create(leaderboardCmd);
+  CLIENT.application.commands.create(loserboardCmd);
+  CLIENT.application.commands.create(helpCmd);
+  CLIENT.application.commands.create(whyCmd);
+  CLIENT.application.commands.create(aboutCmd);
+  CLIENT.application.commands.create(altRulesCmd);
+  CLIENT.application.commands.create(setCmd);
+  CLIENT.application.commands.create(logsCmd);
+  CLIENT.application.commands.create(userSettingCmd);
 
   console.log('Raiha is ready to go!');
 };

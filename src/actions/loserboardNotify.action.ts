@@ -89,13 +89,12 @@ async function warnNotify(guildId: string, channel: string, user: string, value:
       .setColor(0xf4d7ff);
     sendDm(user, autoEmbed);
     const log: AutoPunishmentLog = {
-      guild: guildId,
       user: user,
       type: 'WARN',
       timestamp: Date.now(),
       timeout: 0
     }
-    db.ref('/AutoPunishmentLogs').push(log);
+    db.ref('/AutoPunishmentLogs').child(guildId).push(log);
   }
 }
 
@@ -116,13 +115,12 @@ async function tryAutoPunishment(guild: string, channel: string, user: string, v
     autoPunishmentApply(guild, user);
 
     const log: AutoPunishmentLog = {
-      guild,
       user,
       type: 'IMGMUTE',
       timestamp: Date.now(),
-      timeout
+      timeout: minutes
     }
-    db.ref('/AutoPunishmentLogs').push(log);
+    db.ref('/AutoPunishmentLogs').child(guild).push(log);
 
     const discordTime = Math.floor(timeout  / 1000);
 

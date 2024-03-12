@@ -98,6 +98,50 @@ export default async function (interaction: any) {
     }
   }
 
+  if (commandName === 'logs') {
+    await interaction.deferReply();
+
+    const { options, member } = interaction;
+    let rm = (member!.roles as GuildMemberRoleManager).cache;
+    if (rm.has(leaderboards.Configuration[interaction.guildId!].modRole)) {
+      const specifiedUser = options.getUser('user')!;
+
+      const logs = Object.values(leaderboards.AutoPunishmentLogs[interaction.guildId])
+        .filter(l => l.user == specifiedUser)
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+      let body = `Logs for <@${specifiedUser!.id}>:\n`;
+      let idx = 1;
+      for (let log of logs) {
+        let dTimestamp = Math.floor(log.timestamp  / 1000);
+        let minutes = log.timeout;
+        switch (log.type) {
+          case 'WARN':
+            body += `${idx++}. \`Warn\` at <t:${dTimestamp}:f>\n`;
+            break;
+          case 'IMGMUTE':
+            body += `${idx++}. \`Mute\` at <t:${dTimestamp}:f> for ${minutes / 60 / 24} days\n`;
+            break;
+        }
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle(`Auto Warn/Mute Logs`)
+        .setDescription(body.trim())
+        .setColor(0xd797ff);
+      await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+      return;
+    } else {
+      // User does NOT have the 'Staff' role
+      const embed = new EmbedBuilder()
+        .setTitle(`Leaderboard Override`)
+        .setDescription(`Unfortunately, you do not have sufficient permission to perform this action.`)
+        .setColor(0xd797ff);
+      await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+      return;
+    }
+  }
+
   if (commandName === 'usersetting') {
     await interaction.deferReply();
 

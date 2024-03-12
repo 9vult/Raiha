@@ -59,7 +59,6 @@ export interface AutoPunishment {
 }
 
 export interface AutoPunishmentLog {
-  guild: string,
   user: string,
   timestamp: number,
   type: 'WARN' | 'IMGMUTE',
