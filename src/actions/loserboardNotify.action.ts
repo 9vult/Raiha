@@ -21,17 +21,35 @@ export async function loserboardNotify(incoming: Record<string, Leaderboard>) {
       if (!incomingValue || incomingValue <= value) continue;
 
       if (incomingValue != 0 && (incomingValue % muteThreshold == 0)) {
-        muteNotify(modChannel, user, incomingValue);
-        tryAutoPunishment(guildId, modChannel, user, incomingValue);
+        delayedMuteCheck(guildId, modChannel, user, incomingValue);
       }
       if (enableWarnings && incomingValue != 0 && ((incomingValue + 5) % muteThreshold == 0)) {
-        warnNotify(modChannel, user, incomingValue);
+        delayedWarnCheck(guildId, modChannel, user, incomingValue);
       }
       if (specialWarnThresholds && specialWarnThresholds.includes(incomingValue)) { // Not bound to enableWarnings
-        warnNotify(modChannel, user, incomingValue);
+        delayedWarnCheck(guildId, modChannel, user, incomingValue);
       }
     }
   }
+}
+
+async function delayedMuteCheck(guildId: string, channel: string, user: string, incomingValue: number) {
+  setTimeout(async () => {
+    // Check if the threshold is still met after 60 seconds
+    if (incomingValue <= leaderboards.Loserboard[guildId][user]) {
+      muteNotify(channel, user, incomingValue);
+      // tryAutoPunishment(guildId, channel, user, incomingValue);
+    }
+  }, 60 * 1000);
+}
+
+async function delayedWarnCheck(guildId: string, channel: string, user: string, incomingValue: number) {
+  setTimeout(async () => {
+    // Check if the threshold is still met after 60 seconds
+    if (incomingValue <= leaderboards.Loserboard[guildId][user]) {
+      warnNotify(channel, user, incomingValue);
+    }
+  }, 60 * 1000);
 }
 
 async function muteNotify(channel: string, user: string, value: number) {
