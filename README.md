@@ -97,6 +97,9 @@ Edit and Delete commands will only work if you are the original poster of the me
 {
   ai: boolean,
   altrules: "default" | string,
+  autoPunishment: boolean,
+  autoPunishmentFormula: string (Formula to get minutes, where `x` is the loserboard value. Ex: "(x == 10) ? (60 * 12) : (x / 10 * 60 * 24)"),
+  autoPunishmentRole: string (roleID),
   enableWarnings: boolean,
   errorChannel: string (channelID),
   errorMismatch: "default" | string (emojiID),

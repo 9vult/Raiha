@@ -7,7 +7,10 @@ export interface Statistics {
 
 export interface Configuration {
   ai: boolean
-  altrules: "default" | string
+  altrules: "default" | string,
+  autoPunishment: boolean,
+  autoPunishmentFormula: string,
+  autoPunishmentRole: string,
   enableWarnings: boolean
   errorChannel: string
   errorMismatch: "default" | string
@@ -40,11 +43,18 @@ export interface Data {
   Statistics: Statistics
   Configuration: Record<string, Configuration>
   UserSettings: Record<string, UserSettings>
+  AutoPunishments: Record<string, AutoPunishment>
 }
 
 export interface AiResult {
   desc: string,
   ocr: string
+}
+
+export interface AutoPunishment {
+  guild: string,
+  user: string,
+  timeout: number
 }
 
 export interface Trigger {

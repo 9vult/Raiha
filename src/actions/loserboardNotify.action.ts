@@ -1,6 +1,9 @@
 import { EmbedBuilder, TextChannel } from "discord.js";
-import { CLIENT, leaderboards } from "../raiha";
-import { Leaderboard } from 'src/misc/types';
+import { CLIENT, leaderboards, db } from "../raiha";
+import { AutoPunishment, Leaderboard } from 'src/misc/types';
+import { parse } from 'mathjs';
+import { generateAllowedMentions } from "./generateAllowedMentions.action";
+import { autoPunishmentApply } from "./autoPunishmentApply.action";
 
 export async function loserboardNotify(incoming: Record<string, Leaderboard>) {
   if (!leaderboards.Loserboard || !incoming) return;
@@ -18,13 +21,14 @@ export async function loserboardNotify(incoming: Record<string, Leaderboard>) {
       if (!incomingValue || incomingValue <= value) continue;
 
       if (incomingValue != 0 && (incomingValue % muteThreshold == 0)) {
-          muteNotify(modChannel, user, incomingValue);
+        muteNotify(modChannel, user, incomingValue);
+        tryAutoPunishment(guildId, modChannel, user, incomingValue);
       }
       if (enableWarnings && incomingValue != 0 && ((incomingValue + 5) % muteThreshold == 0)) {
-          warnNotify(modChannel, user, incomingValue);
+        warnNotify(modChannel, user, incomingValue);
       }
       if (specialWarnThresholds && specialWarnThresholds.includes(incomingValue)) { // Not bound to enableWarnings
-          warnNotify(modChannel, user, incomingValue);
+        warnNotify(modChannel, user, incomingValue);
       }
     }
   }
@@ -48,4 +52,33 @@ async function warnNotify(channel: string, user: string, value: number) {
   const fetchChannel = CLIENT.channels.cache.get(channel);
   if (!fetchChannel?.isTextBased()) return;
   await fetchChannel.send({ embeds: [embed] });
+}
+
+async function tryAutoPunishment(guild: string, channel: string, user: string, value: number) {
+  if (!leaderboards.Configuration[guild]?.autoPunishment) return;
+  try {
+    const formula = parse(leaderboards.Configuration[guild].autoPunishmentFormula);
+    const minutes: number = formula.evaluate({ x: value });
+    const timeout = Date.now() + (minutes * 60000);
+
+    let dbData: AutoPunishment = {
+      guild,
+      user,
+      timeout
+    }
+
+    db.ref('/AutoPunishments').push(dbData);
+    autoPunishmentApply(guild, user);
+
+    const discordTime = Math.floor(timeout  / 1000);
+
+    const embed = new EmbedBuilder()
+      .setTitle(`Auto Punishments`)
+      .setDescription(`<@&${leaderboards.Configuration[guild].autoPunishmentRole}> has been applied to <@${user}>.\nThe role will automatically be removed on <t:${discordTime}:f> (${minutes / 60 / 24} days).`)
+      .setColor(0xf4d7ff);
+    const fetchChannel = CLIENT.channels.cache.get(channel);
+    if (!fetchChannel?.isTextBased()) return;
+    await fetchChannel.send({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+
+  } catch (error) { }
 }

@@ -9,12 +9,13 @@ import interactionCreate from "./listeners/interactionCreate";
 import ready from "./listeners/ready";
 import { loserboardNotify } from "./actions/loserboardNotify.action";
 import admin from 'firebase-admin'
-import { Configuration, Data, Leaderboard, Statistics, UserSettings } from './misc/types';
+import { AutoPunishment, Configuration, Data, Leaderboard, Statistics, UserSettings } from './misc/types';
 import { DataSnapshot } from '@firebase/database-types';
+import { autoPunishmentChecker } from "./handlers/autoPunishmentChecker";
 const firebase = require('../firebase.json');
 require('dotenv').config();
 
-export const VERSION = "3.1.0";
+export const VERSION = "3.1.5";
 
 admin.initializeApp({
   credential: admin.credential.cert(firebase),
@@ -29,7 +30,8 @@ export const leaderboards: Data = {
   Loserboard: {},
   Statistics: {},
   Configuration: {},
-  UserSettings: {}
+  UserSettings: {},
+  AutoPunishments: {}
 } as Data;
 
 const client = new Client({
@@ -53,10 +55,14 @@ db.ref('/Statistics').on("value", function (data: DataSnapshot) {
 });
 db.ref('/Configuration').on("value", (data: DataSnapshot) => leaderboards.Configuration = data.val() as Record<string, Configuration>);
 db.ref('/UserSettings').on("value", (data: DataSnapshot) => leaderboards.UserSettings = data.val() as Record<string, UserSettings>);
+db.ref('/AutoPunishments').on("value", (data: DataSnapshot) => leaderboards.AutoPunishments = data.val() as Record<string, AutoPunishment>);
 
 // Set up listeners
 client.once(Events.ClientReady, ready);
 client.on(Events.InteractionCreate, interactionCreate);
 client.on(Events.MessageCreate, messageCreate);
+
+// Start punishment checker loop
+autoPunishmentChecker();
 
 client.login(process.env.TOKEN);
