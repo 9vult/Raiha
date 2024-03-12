@@ -44,6 +44,7 @@ export interface Data {
   Configuration: Record<string, Configuration>
   UserSettings: Record<string, UserSettings>
   AutoPunishments: Record<string, AutoPunishment>
+  AutoPunishmentLogs: Record<string, AutoPunishmentLog>
 }
 
 export interface AiResult {
@@ -54,6 +55,14 @@ export interface AiResult {
 export interface AutoPunishment {
   guild: string,
   user: string,
+  timeout: number
+}
+
+export interface AutoPunishmentLog {
+  guild: string,
+  user: string,
+  timestamp: number,
+  type: 'WARN' | 'IMGMUTE',
   timeout: number
 }
 

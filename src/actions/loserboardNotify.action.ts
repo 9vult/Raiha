@@ -1,9 +1,10 @@
 import { EmbedBuilder, TextChannel } from "discord.js";
 import { CLIENT, leaderboards, db } from "../raiha";
-import { AutoPunishment, Leaderboard } from 'src/misc/types';
+import { AutoPunishment, AutoPunishmentLog, Leaderboard } from 'src/misc/types';
 import { parse } from 'mathjs';
 import { generateAllowedMentions } from "./generateAllowedMentions.action";
 import { autoPunishmentApply } from "./autoPunishmentApply.action";
+import { sendDm } from "./sendDm.action";
 
 export async function loserboardNotify(incoming: Record<string, Leaderboard>) {
   if (!leaderboards.Loserboard || !incoming) return;
@@ -37,8 +38,8 @@ async function delayedMuteCheck(guildId: string, channel: string, user: string, 
   setTimeout(async () => {
     // Check if the threshold is still met after 60 seconds
     if (incomingValue <= leaderboards.Loserboard[guildId][user]) {
-      muteNotify(channel, user, incomingValue);
-      // tryAutoPunishment(guildId, channel, user, incomingValue);
+      muteNotify(guildId, channel, user, incomingValue);
+      tryAutoPunishment(guildId, channel, user, incomingValue);
     }
   }, 60 * 1000);
 }
@@ -47,29 +48,55 @@ async function delayedWarnCheck(guildId: string, channel: string, user: string, 
   setTimeout(async () => {
     // Check if the threshold is still met after 60 seconds
     if (incomingValue <= leaderboards.Loserboard[guildId][user]) {
-      warnNotify(channel, user, incomingValue);
+      warnNotify(guildId, channel, user, incomingValue);
     }
   }, 60 * 1000);
 }
 
-async function muteNotify(channel: string, user: string, value: number) {
+async function muteNotify(guildId: string, channel: string, user: string, value: number) {
+  const auto = leaderboards.Configuration[guildId].autoPunishment;
+  const desc = (auto)
+    ? `Hello! User <@${user}>'s Loserboard score is now ${value}.\nThey have been notified automatically.`
+    : `Hello! User <@${user}>'s Loserboard score is now ${value}.\nAn image mute may be warranted.`;
+
   const embed = new EmbedBuilder()
-    .setTitle(`Loserboard Alert`)
-    .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${value}.\nAn image mute may be warranted.`)
+    .setTitle(`${auto ? '[Auto] ' : ''}Loserboard Alert (Mute)`)
+    .setDescription(desc)
     .setColor(0xf4d7ff);
   const fetchChannel = CLIENT.channels.cache.get(channel);
   if (!fetchChannel?.isTextBased()) return;
   await fetchChannel.send({ embeds: [embed] });
 }
 
-async function warnNotify(channel: string, user: string, value: number) {
+async function warnNotify(guildId: string, channel: string, user: string, value: number) {
+  const auto = leaderboards.Configuration[guildId].autoPunishment;
+  const desc = (auto)
+    ? `Hello! User <@${user}>'s Loserboard score is now ${value}.\nThey have been notified automatically.`
+    : `Hello! User <@${user}>'s Loserboard score is now ${value}.\nThey should be warned that they are approaching an image mute.`;
+
   const embed = new EmbedBuilder()
-    .setTitle(`Loserboard Alert`)
-    .setDescription(`Hello! User <@${user}>'s Loserboard score is now ${value}.\nThey should be warned that they are approaching an image mute.`)
+    .setTitle(`${auto ? '[Auto] ' : ''}Loserboard Alert (Warn)`)
+    .setDescription(desc)
     .setColor(0xf4d7ff);
   const fetchChannel = CLIENT.channels.cache.get(channel);
   if (!fetchChannel?.isTextBased()) return;
   await fetchChannel.send({ embeds: [embed] });
+
+  if (auto) {
+    const autoEmbed = new EmbedBuilder()
+      .setTitle(`Alt Text Warning`)
+      .setDescription(`You have been warned in \`${CLIENT.guilds.cache.get(guildId)?.name}\` because your Loserboard score has reached **${value}**.\nSee the server's \`/altrules\` for more information.\n_This action was performed automatically._`)
+      .setColor(0xf4d7ff);
+    sendDm(user, autoEmbed);
+    const log: AutoPunishmentLog = {
+      guild: guildId,
+      user: user,
+      type: 'WARN',
+      timestamp: Date.now(),
+      timeout: 0
+    }
+    db.ref('/AutoPunishmentLogs').push(log);
+  }
 }
 
 async function tryAutoPunishment(guild: string, channel: string, user: string, value: number) {
@@ -88,6 +115,15 @@ async function tryAutoPunishment(guild: string, channel: string, user: string, v
     db.ref('/AutoPunishments').push(dbData);
     autoPunishmentApply(guild, user);
 
+    const log: AutoPunishmentLog = {
+      guild,
+      user,
+      type: 'IMGMUTE',
+      timestamp: Date.now(),
+      timeout
+    }
+    db.ref('/AutoPunishmentLogs').push(log);
+
     const discordTime = Math.floor(timeout  / 1000);
 
     const embed = new EmbedBuilder()
@@ -97,6 +133,12 @@ async function tryAutoPunishment(guild: string, channel: string, user: string, v
     const fetchChannel = CLIENT.channels.cache.get(channel);
     if (!fetchChannel?.isTextBased()) return;
     await fetchChannel.send({ embeds: [embed], allowedMentions: generateAllowedMentions() });
+
+    const autoEmbed = new EmbedBuilder()
+      .setTitle(`Alt Text Warning`)
+      .setDescription(`You have been image muted in \`${CLIENT.guilds.cache.get(guild)?.name}\` because your Loserboard score has reached **${value}**.\nYour image mute will expire on <t:${discordTime}:f> (${minutes / 60 / 24} days).\nSee the server's \`/altrules\` for more information.\n_This action was performed automatically._`)
+      .setColor(0xf4d7ff);
+    sendDm(user, autoEmbed);
 
   } catch (error) { }
 }
