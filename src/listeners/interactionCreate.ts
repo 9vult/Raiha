@@ -1,229 +1,55 @@
-import { ActionRowBuilder, EmbedBuilder, GuildMemberRoleManager, Interaction, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from 'discord.js';
-import { ServerValue } from "firebase-admin/database";
-import { postLeaderboard, postLoserboard, postRank } from '../misc/leaderboards';
-import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
-import { expiry, whyText } from '../misc/misc';
-import { VERSION, db, leaderboards } from '../raiha';
-import { checkIsOP } from "../actions/checkIsOP.action";
-import { HelpEmbedMap, HelpSelections } from '../misc/help';
+import { ChatInputCommandInteraction, Interaction } from 'discord.js';
+import { RankCmd } from '../commands/rank.cmd';
+import { LeaderboardCmd } from '../commands/leaderboard.cmd';
+import { LoserboardCmd } from '../commands/loserboard.cmd';
+import { SetCmd } from '../commands/set.cmd';
+import { LogsCmd } from '../commands/logs.cmd';
+import { UserSettingCmd } from '../commands/usersetting.cmd';
+import { HelpCmd } from '../commands/help.cmd';
+import { WhyCmd } from '../commands/why.cmd';
+import { AltRulesCmd } from '../commands/altrules.cmd';
+import { AboutCmd } from '../commands/about.cmd';
+import { DelLogCmd } from '../commands/dellog.cmd';
 
-export default async function (interaction: any) {
+export default async function (interaction: Interaction) {
   if (!interaction.isChatInputCommand()) return;
   if (!interaction.inCachedGuild()) return;
 
-  const { commandName, options, user } = interaction;
+  const commandName = (interaction as ChatInputCommandInteraction).commandName;
 
-  if (commandName === 'rank') {
-    await interaction.deferReply();
-    const specifiedUser = options.getUser('user') || user;
-    const id = specifiedUser.id;
-    const content = postRank(id, interaction.guildId!);
-    const embed = new EmbedBuilder()
-      .setTitle(`Alt Text Leaderboards`)
-      .setDescription(content)
-      .setColor(0xd797ff);
-
-    await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-    return;
-  }
-
-  if (commandName === 'leaderboard') {
-    await interaction.deferReply();
-
-    const page = options.getNumber('page')?.valueOf() ?? 1;
-
-    const content = postLeaderboard(interaction.guildId!, page);
-    const embed = new EmbedBuilder()
-      .setTitle(`Alt Text Leaderboards${page !== 1 ? ' (Page ' + page + ')' : ''}`)
-      .setDescription(content.text)
-      .setFooter({ text: content.footer })
-      .setColor(0xd797ff);
-
-    await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-    return;
-  }
-
-  if (commandName === 'loserboard') {
-    await interaction.deferReply();
-
-    const page = options.getNumber('page')?.valueOf() ?? 1;
-    const content = await postLoserboard(interaction.guildId!, page);
-    const embed = new EmbedBuilder()
-      .setTitle(`Loserboard${page !== 1 ? ' (Page ' + page + ')' : ''}`)
-      .setDescription(content)
-      .setColor(0xd797ff);
-
-    await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-    return;
-  }
-
-  if (commandName === 'set') {
-    await interaction.deferReply();
-
-    const { options, member } = interaction;
-    let rm = (member!.roles as GuildMemberRoleManager).cache;
-    if (rm.has(leaderboards.Configuration[interaction.guildId!].modRole)) {
-      const specifiedUser = options.getUser('user')!;
-      const specifiedBoard = options.getString('board')!.valueOf();
-      const specifiedOperation = options.getString('operation')?.valueOf() ?? 'Absolute';
-      const specifiedValue = Math.max(0, options.getNumber('value')!.valueOf())
-
-      const ref = db.ref(`/Leaderboard/${specifiedBoard!}/${interaction.guildId}`).child(specifiedUser.id);
-      const originalValue = (await ref.get()).val();
-      if (specifiedOperation == 'Add') {
-        ref.set(ServerValue.increment(specifiedValue));
-      }
-      else if (specifiedOperation == 'Subtract') {
-        ref.set(ServerValue.increment(-specifiedValue));
-      }
-      else if (specifiedOperation == 'Absolute') {
-        ref.set(specifiedValue);
-      }
-
-      const embed = new EmbedBuilder()
-        .setTitle(`Leaderboard Override`)
-        .setDescription(`Set <@${specifiedUser!.id}>'s **${specifiedBoard!}** value from \`${originalValue!}\` to \`${(await ref.get()).val()!}\`.`)
-
-        .setColor(0xd797ff);
-      await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-      return;
-    } else {
-      // User does NOT have the 'Staff' role
-      const embed = new EmbedBuilder()
-        .setTitle(`Leaderboard Override`)
-        .setDescription(`Unfortunately, you do not have sufficient permission to perform this action.`)
-        .setColor(0xd797ff);
-      await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-      return;
-    }
-  }
-
-  if (commandName === 'logs') {
-    await interaction.deferReply();
-
-    const { options, member } = interaction;
-    let rm = (member!.roles as GuildMemberRoleManager).cache;
-    if (rm.has(leaderboards.Configuration[interaction.guildId!].modRole)) {
-      const specifiedUser = options.getUser('user')!;
-
-      const logs = Object.values(leaderboards.AutoPunishmentLogs[interaction.guildId])
-        .filter(l => l.user == specifiedUser)
-        .sort((a, b) => a.timestamp - b.timestamp);
-
-      let body = `Logs for <@${specifiedUser!.id}>:\n`;
-      let idx = 1;
-      for (let log of logs) {
-        let dTimestamp = Math.floor(log.timestamp  / 1000);
-        let minutes = log.timeout;
-        switch (log.type) {
-          case 'WARN':
-            body += `${idx++}. \`Warn\` at <t:${dTimestamp}:f>\n`;
-            break;
-          case 'IMGMUTE':
-            body += `${idx++}. \`Mute\` at <t:${dTimestamp}:f> for ${minutes / 60 / 24} days\n`;
-            break;
-        }
-      }
-
-      const embed = new EmbedBuilder()
-        .setTitle(`Auto Warn/Mute Logs`)
-        .setDescription(body.trim())
-        .setColor(0xd797ff);
-      await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-      return;
-    } else {
-      // User does NOT have the 'Staff' role
-      const embed = new EmbedBuilder()
-        .setTitle(`Leaderboard Override`)
-        .setDescription(`Unfortunately, you do not have sufficient permission to perform this action.`)
-        .setColor(0xd797ff);
-      await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-      return;
-    }
-  }
-
-  if (commandName === 'usersetting') {
-    await interaction.deferReply();
-
-    const { options, user } = interaction;
-    const specifiedSetting = options.getString('setting')!.valueOf();
-    const specifiedOption = options.getString('option')!.valueOf() == 'YES'
-
-    let ref;
-    switch (specifiedSetting) {
-      case 'Reminder':
-        ref = db.ref(`/UserSettings/${user.id}`).child('Reminder');
-        ref.set(specifiedOption);
-        break;
-      case 'ActivationFailure':
-        ref = db.ref(`/UserSettings/${user.id}`).child('ActivationFailure');
-        ref.set(specifiedOption);
-          break;
-      case 'AutoMode':
-        ref = db.ref(`/UserSettings/${user.id}`).child('AutoMode');
-        ref.set(specifiedOption);
-          break;
-      default:
-        break;
-    }
-
-    const embed = new EmbedBuilder()
-      .setTitle(`Raiha User Settings`)
-      .setDescription(`Set ${specifiedSetting} to ${specifiedOption}.`)
-      .setColor(0xd797ff);
-    await interaction.editReply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-    return;
-  }
-
-  if (commandName === 'help') {
-    const row = new ActionRowBuilder()
-			.addComponents(HelpSelections);
-
-		const response = await interaction.reply({
-      content: "Please make a selection:",
-			components: [row],
-    });
-
-    try {
-      const confirmation = await response.awaitMessageComponent({ time: 60_000 });
-      const selection: string = confirmation.values[0] ?? 'error';
-      await confirmation.update({ content: "", embeds: [HelpEmbedMap[selection]], components: [] })
-    } catch (e) {
-      await interaction.deleteReply();
-    }
-  }
-
-  if (commandName === 'why') {
-    const embed = new EmbedBuilder()
-      .setTitle(`Why Use Alt Text?`)
-      .setDescription(whyText)
-      .setURL(`https://moz.com/learn/seo/alt-text`)
-      .setColor(0xd797ff);
-
-    await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-    return;
-  }
-
-  if (commandName === 'altrules') {
-    let serverValue = leaderboards.Configuration[interaction.guildId!].altrules;
-    serverValue = serverValue.replaceAll('\\n', '\n');
-    if (serverValue == 'default') serverValue = "This server has not specified any alt text rules.";
-    const embed = new EmbedBuilder()
-      .setTitle(`Alt Text Rules for '${interaction.guild!.name}'`)
-      .setDescription(serverValue)
-      .setColor(0xd797ff);
-
-    await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-    return;
-  }
-
-  if (commandName === 'about') {
-    const embed = new EmbedBuilder()
-      .setTitle(`Raiha Accessibility Bot`)
-      .setDescription(`Version: ${VERSION}\nAuthor: <@248600185423396866>`)
-      .setURL(`https://github.com/9vult/Raiha`)
-      .setColor(0xd797ff);
-    await interaction.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() });
-    return;
+  switch (commandName) {
+    case 'rank':
+      await RankCmd(interaction);
+      break;
+    case 'leaderboard':
+      await LeaderboardCmd(interaction);
+      break;
+    case 'loserboard':
+      await LoserboardCmd(interaction);
+      break;
+    case 'set':
+      await SetCmd(interaction);
+      break;
+    case 'logs':
+      await LogsCmd(interaction);
+      break;
+    case 'usersetting':
+      await UserSettingCmd(interaction);
+      break;
+    case 'help':
+      await HelpCmd(interaction);
+      break;
+    case 'why':
+      await WhyCmd(interaction);
+      break;
+    case 'altrules':
+      await AltRulesCmd(interaction);
+      break;
+    case 'about':
+      await AboutCmd(interaction);
+      break;
+    case 'dellog':
+      await DelLogCmd(interaction);
+      break;
   }
 };

@@ -91,6 +91,19 @@ export default function() {
       opt.setName('user')
       .setDescription('User to view')
       .setRequired(true)
+    ).addBooleanOption(opt => 
+      opt.setName('verbose')
+      .setDescription('Include log ID in output')
+      .setRequired(false)
+    );
+
+  const delLogCmd = new SlashCommandBuilder()
+    .setName('dellog')
+    .setDescription('Delete a log (Mod Only)')
+    .addStringOption(opt =>
+      opt.setName('id')
+      .setDescription('ID of the log')
+      .setRequired(true)
     );
 
   const userSettingCmd = new SlashCommandBuilder()
@@ -124,6 +137,7 @@ export default function() {
   CLIENT.application.commands.create(altRulesCmd);
   CLIENT.application.commands.create(setCmd);
   CLIENT.application.commands.create(logsCmd);
+  CLIENT.application.commands.create(delLogCmd);
   CLIENT.application.commands.create(userSettingCmd);
 
   console.log('Raiha is ready to go!');
