@@ -85,7 +85,7 @@ async function warnNotify(guildId: string, channel: string, user: string, value:
   if (auto) {
     const autoEmbed = new EmbedBuilder()
       .setTitle(`Alt Text Warning`)
-      .setDescription(`You have been warned in \`${CLIENT.guilds.cache.get(guildId)?.name}\` because your Loserboard score has reached **${value}**.\nSee the server's \`/altrules\` for more information.\n_This action was performed automatically._`)
+      .setDescription(`You have been warned in \`${CLIENT.guilds.cache.get(guildId)?.name}\` because your Loserboard score has reached **${value}**.\nSee the server's \`/altrules\` for more information.\nFor help, try \`/help\` or \`/why\`.\n_This action was performed automatically._`)
       .setColor(0xf4d7ff);
     sendDm(user, autoEmbed);
     const log: AutoPunishmentLog = {
@@ -134,7 +134,7 @@ async function tryAutoPunishment(guild: string, channel: string, user: string, v
 
     const autoEmbed = new EmbedBuilder()
       .setTitle(`Alt Text Warning`)
-      .setDescription(`You have been image muted in \`${CLIENT.guilds.cache.get(guild)?.name}\` because your Loserboard score has reached **${value}**.\nYour image mute will expire on <t:${discordTime}:f> (${minutes / 60 / 24} days).\nSee the server's \`/altrules\` for more information.\n_This action was performed automatically._`)
+      .setDescription(`You have been image muted in \`${CLIENT.guilds.cache.get(guild)?.name}\` because your Loserboard score has reached **${value}**.\nYour image mute will expire on <t:${discordTime}:f> (${minutes / 60 / 24} days).\nSee the server's \`/altrules\` for more information.\nFor help, try \`/help\` or \`/why\`.\n_This action was performed automatically._`)
       .setColor(0xf4d7ff);
     sendDm(user, autoEmbed);
 
