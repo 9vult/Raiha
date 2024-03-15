@@ -15,6 +15,6 @@ export async function informNewUser(originalMessage: Message<true>) {
       .setColor(0xf4d7ff);
 
     await originalMessage.reply({ embeds: [embed] })
-      .then(reply => setTimeout(() => reply.delete(), expireTime * 1000));
+      .then(reply => setTimeout(() => { try { reply.delete() } catch { } }, expireTime * 1000));
   }
 }
