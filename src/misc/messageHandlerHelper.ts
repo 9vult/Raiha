@@ -9,7 +9,7 @@ import { sendError } from "../actions/sendError.action";
 import { CLIENT, db, leaderboards } from "../raiha";
 import { AiResult, Trigger } from "./types";
 import { Gpt } from "../actions/gpt.action";
-import { AutoMode } from "./misc";
+import { AutoMode, expiry } from "./misc";
 import { Whisper } from "../actions/whisper.action";
 var parseSRT = require('parse-srt');
 const { getAudioDurationInSeconds } = require('get-audio-duration')
@@ -311,7 +311,7 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
     if (alt.trim().length === 0) return await fail('ERR_MISMATCH', cmdMsg, inline);
     if (alt.length > 1000) return await fail('TOO_LONG', cmdMsg, inline, alt.length);
   }
-  if (altTexts.length !== imgMsg.attachments.size) return await fail('ERR_MISMATCH', cmdMsg, inline);
+  if (altTexts.length !== imgMsg.attachments.size) return await fail('ERR_MISMATCH', cmdMsg, inline, [altTexts.length, imgMsg.attachments.size]);
 
   await cmdMsg.react('✅');
   const applied = await applyAltText(imgMsg, altTexts, triggerData);
@@ -400,11 +400,26 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
  * @param data Any additional data
  */
 export async function fail(code: string, msg: Message<true>, loser: boolean, data: any = undefined) {
+  const expireTime = 45;
+  let embed: EmbedBuilder;
+  let body: string;
   switch(code) {
     case 'TOO_LONG':
-      const embed = new EmbedBuilder().setTitle(`Error`).setDescription(`Discord limits alt text to 1000 characters. Your specified alt text is ${data} characters. Please try again.`);
-      await msg.reply({ embeds: [embed] });
+      body = `Discord limits alt text to 1000 characters. Your specified alt text is ${data} characters. Please try again.`;
+      embed = new EmbedBuilder().setTitle(`Error`).setDescription(expiry(body, expireTime));
+      await msg.reply({ embeds: [embed] })
+        .then(theReply => {
+          setTimeout(() => theReply.delete(), expireTime * 1000);
+        });
       break;
+    case 'ERR_MISMATCH':
+      body = (data != undefined) ? `There are ${data[1]} attachments in this post, but you only specified ${data[0]} alt texts. Please try again.` : `One or more of your specified alt texts was empty. Please try again.`
+      embed = new EmbedBuilder().setTitle(`Mismatch Error`).setDescription(expiry(body, expireTime));
+      await msg.reply({ embeds: [embed] })
+        .then(theReply => {
+          setTimeout(() => theReply.delete(), expireTime * 1000);
+        });
+    break;
     default:
       await react(msg, code);
       if (!loser) await activationFailure(msg); // Loserboard is not activation failure
