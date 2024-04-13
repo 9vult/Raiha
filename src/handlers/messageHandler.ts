@@ -13,6 +13,7 @@ import { urlCheckWarning } from "../actions/urlCheckWarning.action";
 import { urlCheckLoserboard } from "../actions/urlCheckLoserboard.action";
 import parseTriggers from "../actions/parseTriggers.action";
 import { NoTrigger, Trigger, TriggerType } from "../misc/types";
+import { delmsg } from "../actions/delete.action";
 
 export async function handleMessage(msg: Message<true>) {
   if (msg.author.bot || !msg.inGuild()) return;
@@ -91,8 +92,8 @@ async function deleteTriggerBranch(msg: Message<true>, parent: Message<true>, tr
   let isOP = (await checkIsOP(parent, msg.author))[0];
   let responseText = '';
   if (isOP) {
-    await parent.delete().catch(() => {/* TODO: something here */ })
-    await msg.delete().catch(() => {/* TODO: something here */ })
+    await delmsg(parent);
+    await delmsg(msg);
   } else {
     responseText = 'You are not the author of this message, or this message is not a Raiha message.';
     const embed = new EmbedBuilder()
@@ -100,7 +101,7 @@ async function deleteTriggerBranch(msg: Message<true>, parent: Message<true>, tr
       .setDescription(expiry(responseText, 10))
       .setColor(0xd797ff);
     await msg.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
-      .then(reply => setTimeout(() => reply.delete(), expireTime * 1000));
+      .then(reply => setTimeout(async () => await delmsg(reply), expireTime * 1000));
   }
 }
 
@@ -123,7 +124,7 @@ async function editTriggerBranch(msg: Message<true>, parent: Message<true>, trig
       content: newBody,
       allowedMentions: generateAllowedMentions()
     });
-    await msg.delete();
+    await delmsg(msg);
     db.ref(`/Actions/${msg.guild!.id}/${msg.channel!.id}`).child(`${opData['Parent']}`).set(opData);
     db.ref(`/Actions/${msg.guild!.id}/${msg.channel!.id}/${opData['Parent']}`).child("Body").set(result);
   } else if (content.toLowerCase().startsWith("edit!")) {
@@ -132,7 +133,7 @@ async function editTriggerBranch(msg: Message<true>, parent: Message<true>, trig
       content: parent.content.replace(opData['Body'], replacement),
       allowedMentions: generateAllowedMentions()
     });
-    await msg.delete();
+    await delmsg(msg);
     db.ref(`/Actions/${msg.guild!.id}/${msg.channel!.id}/${opData['Parent']}`).child("Body").set(replacement);
   }
   return;

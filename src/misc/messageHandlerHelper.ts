@@ -11,6 +11,7 @@ import { AiResult, Trigger } from "./types";
 import { Gpt } from "../actions/gpt.action";
 import { AutoMode, expiry } from "./misc";
 import { Whisper } from "../actions/whisper.action";
+import { delmsg } from "../actions/delete.action";
 var parseSRT = require('parse-srt');
 const { getAudioDurationInSeconds } = require('get-audio-duration')
 
@@ -280,7 +281,7 @@ export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMs
   if (transcriptions.length > 0) {
     audioMsg.reply({ content: transcriptions.trim(), allowedMentions: generateAllowedMentions() });
     if (cmdMsg.id !== audioMsg.id)
-      await cmdMsg.delete();
+      await delmsg(cmdMsg);
     else
       await react(cmdMsg, 'REMOVE_REACTIONS'); // not the greatest but sure
     return;
@@ -368,8 +369,8 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
   }
 
   try {
-    await imgMsg.delete();
-    if (!inline) await cmdMsg.delete();
+    await delmsg(imgMsg);
+    if (!inline) await delmsg(cmdMsg);
   } catch (err) {
     await sendError(cmdMsg.guild!.id, "Could not delete", (<Error>err).message, cmdMsg.author!.id, cmdMsg.url);
   }
@@ -409,7 +410,7 @@ export async function fail(code: string, msg: Message<true>, loser: boolean, dat
       embed = new EmbedBuilder().setTitle(`Error`).setDescription(expiry(body, expireTime));
       await msg.reply({ embeds: [embed] })
         .then(theReply => {
-          setTimeout(() => theReply.delete(), expireTime * 1000);
+          setTimeout(async () => await delmsg(theReply), expireTime * 1000);
         });
       break;
     case 'ERR_MISMATCH':
@@ -417,7 +418,7 @@ export async function fail(code: string, msg: Message<true>, loser: boolean, dat
       embed = new EmbedBuilder().setTitle(`Mismatch Error`).setDescription(expiry(body, expireTime));
       await msg.reply({ embeds: [embed] })
         .then(theReply => {
-          setTimeout(() => theReply.delete(), expireTime * 1000);
+          setTimeout(async () => await delmsg(theReply), expireTime * 1000);
         });
     break;
     default:

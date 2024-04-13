@@ -2,6 +2,7 @@ import { EmbedBuilder, Message } from "discord.js";
 import { expiry, urlWarning } from "../misc/misc";
 import { generateAllowedMentions } from "./generateAllowedMentions.action";
 import { react } from "./react.action";
+import { delmsg } from "./delete.action";
 
 export async function urlCheckWarning(originalMessage: Message<true>) {
     const expireTime = 25;
@@ -12,7 +13,7 @@ export async function urlCheckWarning(originalMessage: Message<true>) {
   
     await originalMessage.reply({ embeds: [embed], allowedMentions: generateAllowedMentions() })
       .then(theReply => {
-        setTimeout(() => theReply.delete(), expireTime * 1000);
+        setTimeout(async () => delmsg(theReply), expireTime * 1000);
       });
     await react(originalMessage, 'WARN_LINK');
   }

@@ -1,6 +1,7 @@
 import { EmbedBuilder, Message } from "discord.js"
 import { expiry, autoModeOptOutHint } from "../misc/misc";
 import { leaderboards } from '../raiha';
+import { delmsg } from "./delete.action";
 
 export async function informNewAutoModeOptOut(originalMessage: Message<true>) {
   const expireTime = 45;
@@ -16,6 +17,6 @@ export async function informNewAutoModeOptOut(originalMessage: Message<true>) {
       .setColor(0xf4d7ff);
 
     await originalMessage.reply({ embeds: [embed] })
-      .then(reply => setTimeout(() => reply.delete(), expireTime * 1000));
+      .then(reply => setTimeout(async () => await delmsg(reply), expireTime * 1000));
   }
 }
