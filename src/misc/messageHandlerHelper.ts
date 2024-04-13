@@ -229,7 +229,7 @@ export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMs
   if (!openaiEnabled) return;
 
   if (!hasAttachments(audioMsg)) {
-    await cmdMsg.react('❌');
+    await react(cmdMsg, 'AUDIO_ERROR');
     return;
   }
   let transcriptions = "";
@@ -249,19 +249,19 @@ export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMs
     // Continue with defaults for all other cases
 
     if (file.size > (25 * 1000000)) {
-      await cmdMsg.react('❌');
+      await react(cmdMsg, 'AUDIO_ERROR');
       cmdMsg.reply({ content: `Sorry, but this file is too big. Raiha can only transcribe files up to 25 MB. (${file.size / 1000000})`, allowedMentions: generateAllowedMentions() });
       return;
     }
 
     const dur = await getAudioDurationInSeconds(file.url);
     if (dur > (5 * 60)) {
-      await cmdMsg.react('❌');
+      await react(cmdMsg, 'AUDIO_ERROR');
       cmdMsg.reply({ content: `Sorry, but this file is too long. Raiha can only transcribe files up to 5 minutes long. (${dur / 60})`, allowedMentions: generateAllowedMentions() });
       return;
     }
 
-    await cmdMsg.react('✅');
+    await react(cmdMsg, 'OK');
     let transcription = await Whisper(file.url, file.name, type);
     if (transcription == "") continue;
 
@@ -282,10 +282,10 @@ export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMs
     if (cmdMsg.id !== audioMsg.id)
       await cmdMsg.delete();
     else
-      cmdMsg.reactions.removeAll(); // not the greatest but sure
+      await react(cmdMsg, 'REMOVE_REACTIONS'); // not the greatest but sure
     return;
   } else {
-    await cmdMsg.react('❌');
+    await react(cmdMsg, 'AUDIO_ERROR');
     return;
   }
 }
@@ -313,7 +313,7 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
   }
   if (altTexts.length !== imgMsg.attachments.size) return await fail('ERR_MISMATCH', cmdMsg, inline, [altTexts.length, imgMsg.attachments.size]);
 
-  await cmdMsg.react('✅');
+  await react(cmdMsg, 'OK');
   const applied = await applyAltText(imgMsg, altTexts, triggerData);
   let fixedFiles = applied.files;
   let mentions = getMentions(imgMsg);

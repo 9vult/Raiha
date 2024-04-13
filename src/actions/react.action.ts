@@ -36,8 +36,20 @@ export async function react(message: Message<true>, reaction: string) {
           await message.react(serverValue);
           return;
         }
+      case 'WARN_LINK':
+        await message.react('🔗');
+        return;
+      case 'AUDIO_ERROR':
+        await message.react('❌');
+        return;
+      case 'OK':
+        await message.react('✅');
+        return;
+      case 'REMOVE_REACTIONS':
+        await message.reactions.removeAll();
+        break;
     }
   } catch (err) {
-    await sendError(message.guild.id, "Could not react", (err as Error).message, message.author.id, message.url);
+    await sendError(message.guild.id, `Could not react with ${reaction}`, (err as Error).message, message.author.id, message.url);
   }
 }

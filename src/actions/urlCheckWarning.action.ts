@@ -1,8 +1,9 @@
 import { EmbedBuilder, Message } from "discord.js";
 import { expiry, urlWarning } from "../misc/misc";
 import { generateAllowedMentions } from "./generateAllowedMentions.action";
+import { react } from "./react.action";
 
-export async function urlCheckWarning(originalMessage: Message<boolean>) {
+export async function urlCheckWarning(originalMessage: Message<true>) {
     const expireTime = 25;
     const embed = new EmbedBuilder()
       .setTitle("Alt Text Help")
@@ -13,5 +14,5 @@ export async function urlCheckWarning(originalMessage: Message<boolean>) {
       .then(theReply => {
         setTimeout(() => theReply.delete(), expireTime * 1000);
       });
-    await originalMessage.react('🔗');
+    await react(originalMessage, 'WARN_LINK');
   }
