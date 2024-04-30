@@ -255,12 +255,13 @@ export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMs
       return;
     }
 
-    const dur = await getAudioDurationInSeconds(file.url);
-    if (dur > (5 * 60)) {
-      await react(cmdMsg, 'AUDIO_ERROR');
-      cmdMsg.reply({ content: `Sorry, but this file is too long. Raiha can only transcribe files up to 5 minutes long. (${dur / 60})`, allowedMentions: generateAllowedMentions() });
-      return;
-    }
+    // TODO
+    // const dur = await getAudioDurationInSeconds(file.url);
+    // if (dur > (5 * 60)) {
+    //   await react(cmdMsg, 'AUDIO_ERROR');
+    //   cmdMsg.reply({ content: `Sorry, but this file is too long. Raiha can only transcribe files up to 5 minutes long. (${dur / 60})`, allowedMentions: generateAllowedMentions() });
+    //   return;
+    // }
 
     await react(cmdMsg, 'OK');
     let transcription = await Whisper(file.url, file.name, type);
