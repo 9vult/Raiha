@@ -4,7 +4,7 @@ export async function Gpt(imageUrl: string) {
   const openai = new OpenAI();
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4-vision-preview",
+      model: "gpt-4o",
       messages: [
         {
           role: "user",
