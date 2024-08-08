@@ -7,6 +7,7 @@ export interface Statistics {
 
 export interface Configuration {
   ai: boolean
+  disableAltChecks: boolean,
   altrules: "default" | string,
   autoPunishment: boolean,
   autoPunishmentFormula: string,

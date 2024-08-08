@@ -62,6 +62,8 @@ async function botCallBranch(msg: Message<true>, triggerData: Trigger) {
 }
 
 async function noBotCallBranch(msg: Message<true>) {
+  if (leaderboards.Configuration[msg.guild.id]?.disableAltChecks) return;
+
   if (urlCheck(msg)) {
     urlCheckWarning(msg);
     urlCheckLoserboard(msg);
