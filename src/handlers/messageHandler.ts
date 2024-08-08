@@ -63,10 +63,10 @@ async function botCallBranch(msg: Message<true>, triggerData: Trigger) {
 
 async function noBotCallBranch(msg: Message<true>) {
   const missingAltText = isMissingAltText(msg);
-  const userAutoModeEnabled = userHasAutoModeEnabled(msg.author.id);
+  const userAutoMode = userHasAutoModeEnabled(msg.author.id);
 
   // If auto mode is enabled, then the disable check doesn't matter
-  if (!userAutoModeEnabled && leaderboards.Configuration[msg.guild.id]?.disableAltChecks) return;
+  if (userAutoMode == AutoMode.OFF && leaderboards.Configuration[msg.guild.id]?.disableAltChecks) return;
 
   if (urlCheck(msg)) {
     urlCheckWarning(msg);
@@ -75,7 +75,7 @@ async function noBotCallBranch(msg: Message<true>) {
   if (!hasAttachments(msg)) return;
 
   if (missingAltText) {
-    const autoModeMode = userAutoModeEnabled;
+    const autoModeMode = userAutoMode;
     if ([AutoMode.ON, AutoMode.IMPLICIT].includes(autoModeMode)) {
       if (autoModeMode == AutoMode.ON || (leaderboards.Configuration[msg.guild.id].autoModeOptOut && autoModeMode == AutoMode.IMPLICIT)) {
         await informNewAutoModeOptOut(msg);
