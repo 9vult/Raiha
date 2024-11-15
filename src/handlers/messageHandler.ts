@@ -4,7 +4,7 @@ import { checkIsOP } from "../actions/checkIsOP.action";
 import { generateAllowedMentions } from "../actions/generateAllowedMentions.action";
 import { areNotImages, doBotTriggeredAltText, doBotTriggeredTranscription, fail, getParent, hasAttachments, isAudioMessage, isMissingAltText, isReply, userHasAutoModeEnabled, wasPostedByBot } from "../misc/messageHandlerHelper";
 import { AutoMode, expiry } from "../misc/misc";
-import { db, leaderboards } from "../raiha";
+import { CLIENT, db, leaderboards } from "../raiha";
 import { informNewUser } from "../actions/informNewUser.action";
 import { remindUser } from "../actions/remindUser.action";
 import { informNewAutoModeOptOut } from "../actions/informNewAutoModeOptOut";
@@ -14,6 +14,7 @@ import { urlCheckLoserboard } from "../actions/urlCheckLoserboard.action";
 import parseTriggers from "../actions/parseTriggers.action";
 import { NoTrigger, Trigger, TriggerType } from "../misc/types";
 import { delmsg } from "../actions/delete.action";
+import { getOP } from "../actions/getOP";
 
 export async function handleMessage(msg: Message<true>) {
   if (msg.author.bot || !msg.inGuild()) return;
@@ -30,6 +31,8 @@ export async function handleMessage(msg: Message<true>) {
       case TriggerType.TRANSCRIPTION:
         return await doBotTriggeredTranscription(msg, parent, triggerData);
       default:
+        if (msg.mentions.users.has(CLIENT.user?.id ?? ''))
+          await pingForwardBranch(msg, parent);
         break;
     }
   }
@@ -92,9 +95,17 @@ async function noBotCallBranch(msg: Message<true>) {
   }
 }
 
+async function pingForwardBranch(msg: Message<true>, parent: Message<true>) {
+  if (!wasPostedByBot(parent)) return;
+  let opId = await getOP(parent);
+
+  if (!msg.mentions.users.has(opId))
+    msg.channel.send(`Forwarding reply ping to <@${opId}>: ${msg.url}`);
+}
+
 async function deleteTriggerBranch(msg: Message<true>, parent: Message<true>, triggerData: Trigger) {
   const expireTime = 10;
-  if (!wasPostedByBot(parent)) return
+  if (!wasPostedByBot(parent)) return;
   let isOP = (await checkIsOP(parent, msg.author))[0];
   let responseText = '';
   if (isOP) {
