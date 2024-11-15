@@ -203,7 +203,10 @@ export function autoModeGenerator(message: Message<true>): string[] {
   let altTexts: string[] = [];
   for (let attachment of message.attachments) {
     let file = attachment[1];
-    if (!file.contentType?.startsWith('image')) altTexts.push('-');
+    if (!file.contentType?.startsWith('image')) {
+      altTexts.push('-');
+      continue;
+    }
     if (file.description === null || file.description === undefined || file.description.trim() === '') {
       altTexts.push('$$ocr');
     } else {
