@@ -4,13 +4,13 @@ import { leaderboards } from "../raiha";
 
 export default function parseTriggers(msg: Message<true>): Trigger {
   let lc = msg.content.toLowerCase();
-  const triggers = /\b(r!|alt:|id:|!r|ts!|transcribe!|edit!|r\/|delete!)(?:\ --([A-Za-z]+)=([A-Za-z]+))?/ig;
+  const triggers = /\b(r!|alt:|id:|!r|ts!|transcribe!|edit!|r\/|delete!)(?:\ (--|—)([A-Za-z]+)=([A-Za-z]+))?/ig;
   let match = lc.matchAll(triggers).next().value;
   if (!match) return NoTrigger;
 
   let rawTrigger: string = match[1];
-  let oKey: string = match[2];
-  let oValue: string = match[3];
+  let oKey: string = match[3];
+  let oValue: string = match[4];
   let position: number = match.index;
 
   if (disabled(msg, rawTrigger)) return NoTrigger;
