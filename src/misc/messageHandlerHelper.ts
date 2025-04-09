@@ -151,7 +151,6 @@ export async function applyAltText(msg: Message<true>, altTexts: string[], trigg
         } else {
           ai = await generateAIDescription(imageUrl, true, true);
         }
-        altTextResults.push(ai);
         const desc = ai.ocr.length > 0 ? `${ai.desc}: ${ai.ocr}`.replace('\n', ' \n') : ai.desc;
         altTextResults.push(ai);
         altTexts[index] = desc.substring(0, 1000);
