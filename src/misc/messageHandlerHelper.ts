@@ -8,10 +8,10 @@ import { react } from "../actions/react.action";
 import { sendError } from "../actions/sendError.action";
 import { CLIENT, db, leaderboards } from "../raiha";
 import { AiResult, Trigger } from "./types";
-import { Gpt } from "../actions/gpt.action";
 import { AutoMode, expiry } from "./misc";
 import { Whisper } from "../actions/whisper.action";
 import { delmsg } from "../actions/delete.action";
+import { Claude } from "../actions/claude.action";
 var parseSRT = require('parse-srt');
 const { getAudioDurationInSeconds } = require('get-audio-duration')
 
@@ -113,7 +113,7 @@ export async function applyAltText(msg: Message<true>, altTexts: string[], trigg
         let ai: AiResult;
         if (openaiEnabled) {
           if (!override || (override && override == 'gpt')) {
-            ai = { desc: await Gpt(imageUrl) ?? "", ocr: "" }
+            ai = { desc: await Claude(imageUrl) ?? "", ocr: "" }
             if (ai.desc.startsWith('[[error]]')) {
               msg.reply(`An error occured. Please consider manually adding alt text to the affected image(s).\n${ai.desc.replace(/\(.+\)/, '')}`);
               ai.desc = "[An error occured while generating alt text for this image.]";
@@ -140,7 +140,7 @@ export async function applyAltText(msg: Message<true>, altTexts: string[], trigg
         let ai: AiResult;
         if (openaiEnabled) {
           if (!override || (override && override == 'gpt')) {
-            ai = { desc: await Gpt(imageUrl) ?? "", ocr: "" }
+            ai = { desc: await Claude(imageUrl) ?? "", ocr: "" }
             if (ai.desc.startsWith('[[error]]')) {
               msg.reply(`An error occured. Please consider manually adding alt text to the affected image(s).\n${ai.desc.replace(/\(.+\)/, '')}`);
               ai.desc = "[An error occured while generating alt text for this image.]";
@@ -231,67 +231,70 @@ export async function doBotTriggeredTranscription(cmdMsg: Message<true>, audioMs
   const openaiEnabled = leaderboards.Configuration[cmdMsg.guild.id].openai;
   if (!openaiEnabled) return;
 
-  if (!hasAttachments(audioMsg)) {
-    await react(cmdMsg, 'AUDIO_ERROR');
-    return;
-  }
-  let transcriptions = "";
-  for (let attachment of audioMsg.attachments) {
-    let file = attachment[1];
-    let ct = file.contentType ?? "";
-    let type: "text" | "srt";
-    // Defaults
-    if (ct.startsWith('audio')) type = "text";
-    else if (ct.startsWith('video')) type = "srt";
-    else return;
-    // Override
-    if (triggerData.override)
-      if (triggerData.override.key.toLowerCase() == "type")
-        if (triggerData.override.value == "text" || triggerData.override.value == "srt")
-          type = triggerData.override.value;
-    // Continue with defaults for all other cases
+  cmdMsg.reply({ content: "Sorry, but Whisper transcription is currently disabled." });
+  return;
 
-    if (file.size > (25 * 1000000)) {
-      await react(cmdMsg, 'AUDIO_ERROR');
-      cmdMsg.reply({ content: `Sorry, but this file is too big. Raiha can only transcribe files up to 25 MB. (${file.size / 1000000})`, allowedMentions: generateAllowedMentions() });
-      return;
-    }
+  // if (!hasAttachments(audioMsg)) {
+  //   await react(cmdMsg, 'AUDIO_ERROR');
+  //   return;
+  // }
+  // let transcriptions = "";
+  // for (let attachment of audioMsg.attachments) {
+  //   let file = attachment[1];
+  //   let ct = file.contentType ?? "";
+  //   let type: "text" | "srt";
+  //   // Defaults
+  //   if (ct.startsWith('audio')) type = "text";
+  //   else if (ct.startsWith('video')) type = "srt";
+  //   else return;
+  //   // Override
+  //   if (triggerData.override)
+  //     if (triggerData.override.key.toLowerCase() == "type")
+  //       if (triggerData.override.value == "text" || triggerData.override.value == "srt")
+  //         type = triggerData.override.value;
+  //   // Continue with defaults for all other cases
 
-    // TODO
-    // const dur = await getAudioDurationInSeconds(file.url);
-    // if (dur > (5 * 60)) {
-    //   await react(cmdMsg, 'AUDIO_ERROR');
-    //   cmdMsg.reply({ content: `Sorry, but this file is too long. Raiha can only transcribe files up to 5 minutes long. (${dur / 60})`, allowedMentions: generateAllowedMentions() });
-    //   return;
-    // }
+  //   if (file.size > (25 * 1000000)) {
+  //     await react(cmdMsg, 'AUDIO_ERROR');
+  //     cmdMsg.reply({ content: `Sorry, but this file is too big. Raiha can only transcribe files up to 25 MB. (${file.size / 1000000})`, allowedMentions: generateAllowedMentions() });
+  //     return;
+  //   }
 
-    await react(cmdMsg, 'OK');
-    let transcription = await Whisper(file.url, file.name, type);
-    if (transcription == "") continue;
+  //   // TODO
+  //   // const dur = await getAudioDurationInSeconds(file.url);
+  //   // if (dur > (5 * 60)) {
+  //   //   await react(cmdMsg, 'AUDIO_ERROR');
+  //   //   cmdMsg.reply({ content: `Sorry, but this file is too long. Raiha can only transcribe files up to 5 minutes long. (${dur / 60})`, allowedMentions: generateAllowedMentions() });
+  //   //   return;
+  //   // }
 
-    if (type == "srt") {
-      let builder = "";
-      let srtAsJson = parseSRT(transcription);
-      for (let line of srtAsJson) {
-        builder += `[${new Date(line.start * 1000).toISOString().substring(15, 19)}]: ${line.text}\n`;
-      }
-      transcriptions += `\`\`\`\n${builder}\n\`\`\`\n`;
-    } else {
-      transcriptions += `> ${transcription}\n`;
-    }
+  //   await react(cmdMsg, 'OK');
+  //   let transcription = await Whisper(file.url, file.name, type);
+  //   if (transcription == "") continue;
 
-  }
-  if (transcriptions.length > 0) {
-    audioMsg.reply({ content: transcriptions.trim(), allowedMentions: generateAllowedMentions() });
-    if (cmdMsg.id !== audioMsg.id)
-      await delmsg(cmdMsg);
-    else
-      await react(cmdMsg, 'REMOVE_REACTIONS'); // not the greatest but sure
-    return;
-  } else {
-    await react(cmdMsg, 'AUDIO_ERROR');
-    return;
-  }
+  //   if (type == "srt") {
+  //     let builder = "";
+  //     let srtAsJson = parseSRT(transcription);
+  //     for (let line of srtAsJson) {
+  //       builder += `[${new Date(line.start * 1000).toISOString().substring(15, 19)}]: ${line.text}\n`;
+  //     }
+  //     transcriptions += `\`\`\`\n${builder}\n\`\`\`\n`;
+  //   } else {
+  //     transcriptions += `> ${transcription}\n`;
+  //   }
+
+  // }
+  // if (transcriptions.length > 0) {
+  //   audioMsg.reply({ content: transcriptions.trim(), allowedMentions: generateAllowedMentions() });
+  //   if (cmdMsg.id !== audioMsg.id)
+  //     await delmsg(cmdMsg);
+  //   else
+  //     await react(cmdMsg, 'REMOVE_REACTIONS'); // not the greatest but sure
+  //   return;
+  // } else {
+  //   await react(cmdMsg, 'AUDIO_ERROR');
+  //   return;
+  // }
 }
 
 /**
