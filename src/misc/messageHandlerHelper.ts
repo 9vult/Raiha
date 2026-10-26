@@ -397,8 +397,8 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
   await payload.resolveFiles();
 
   // discord.js assigns attachment ids in the same order as `files`, so index i matches fixedFiles[i].
-  const body = payload.body as unknown as { attachments?: Array<{ is_spoiler?: boolean }> } | null;
-  body?.attachments?.forEach((att, i) => {
+  const rawBody = payload.body as unknown as { attachments?: Array<{ is_spoiler?: boolean }> } | null;
+  rawBody?.attachments?.forEach((att, i) => {
     if (spoilerMask[i]) att.is_spoiler = true;
   });
 
