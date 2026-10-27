@@ -1,4 +1,4 @@
-import { Attachment, EmbedBuilder, Message } from "discord.js";
+import { Attachment, EmbedBuilder, Message, MessagePayload } from "discord.js";
 import { ServerValue } from "firebase-admin/database";
 import { activationFailure } from "../actions/activationFailure.action";
 import { generateAIDescription } from "../actions/generateAIDescription.action";
@@ -75,6 +75,24 @@ export function isAudioMessage(msg: Message<true>): boolean {
     return (file.name == "voice-message.ogg")
   }
   return false;
+}
+
+/**
+ * Discord's IS_SPOILER attachment flag (1 << 3).
+ * Hard-coded because the discord-api-types version pinned by discord.js 14.14
+ * doesn't export AttachmentFlags.IsSpoiler.
+ */
+const ATTACHMENT_FLAG_IS_SPOILER = 1 << 3;
+
+/**
+ * Check if an attachment was marked as a spoiler by its uploader.
+ * Discord now marks spoilers with the IS_SPOILER attachment flag instead of a
+ * "SPOILER_" filename prefix. The prefix is still checked for older uploads.
+ * @param file Attachment to check
+ * @returns True if the attachment is a spoiler
+ */
+export function isSpoilerAttachment(file: Attachment): boolean {
+  return file.flags.has(ATTACHMENT_FLAG_IS_SPOILER) || file.name.startsWith("SPOILER_");
 }
 
 /**
@@ -360,13 +378,31 @@ export async function doBotTriggeredAltText(cmdMsg: Message<true>, imgMsg: Messa
 
   if (pimbmMessage.length > 0) repostContent = repostContent + `\n\n${pimbmMessage}`;
 
-  const payload = {
+  // Discord no longer spoilers attachments based on a "SPOILER_" filename prefix;
+  // it needs `is_spoiler: true` on the attachment in the request body. discord.js
+  // doesn't send that field, so build the payload ourselves and add it before sending.
+  const spoilerMask = fixedFiles.map(isSpoilerAttachment);
+  const parent = isReply(imgMsg) ? await getParent(imgMsg) : undefined;
+  const targetChannel = parent ? parent.channel : cmdMsg.channel;
+
+  const payload = MessagePayload.create(targetChannel, {
     files: fixedFiles,
     content: repostContent,
-    allowedMentions: allowedMentions
-  }
-  if (isReply(imgMsg)) sentMsg = await (await getParent(imgMsg)).reply(payload);
-  else sentMsg = await cmdMsg.channel.send(payload);
+    allowedMentions: allowedMentions,
+    // Message.reply() drops its reply reference when given a prebuilt MessagePayload,
+    // so set the reference here and send through the channel instead.
+    ...(parent && { reply: { messageReference: parent } }),
+  });
+  payload.resolveBody();
+  await payload.resolveFiles();
+
+  // discord.js assigns attachment ids in the same order as `files`, so index i matches fixedFiles[i].
+  const rawBody = payload.body as unknown as { attachments?: Array<{ is_spoiler?: boolean }> } | null;
+  rawBody?.attachments?.forEach((att, i) => {
+    if (spoilerMask[i]) att.is_spoiler = true;
+  });
+
+  sentMsg = await targetChannel.send(payload);
 
   if (inline) {
     msgParentID = sentMsg.id;
