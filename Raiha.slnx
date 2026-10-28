@@ -1,2 +1,6 @@
 <Solution>
+  <Project Path="Raiha.Core/Raiha.Core.csproj" />
+  <Project Path="Raiha.Discord/Raiha.Discord.csproj" />
+  <Project Path="Raiha.Domain/Raiha.Domain.csproj" />
+  <Project Path="Raiha.Host/Raiha.Host.csproj" />
 </Solution>
